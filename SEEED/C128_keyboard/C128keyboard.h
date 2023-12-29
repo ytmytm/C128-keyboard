@@ -80,9 +80,9 @@ class C64KeyInfo {
     const char *m_name;
 };
 
-class C64keyboard {
+class C128keyboard {
   public:
-    C64keyboard();
+    C128keyboard();
     void c64key(uint16_t c, bool kpress);
     uint16_t mapkeycode(uint8_t kc, uint8_t mod);
     void clearAllKeys(void);

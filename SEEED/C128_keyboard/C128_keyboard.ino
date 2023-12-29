@@ -38,7 +38,7 @@ USBHost usb;
 KeyboardController keyboard(usb);
 
 
-C64keyboard *ckey;
+C128keyboard *ckey;
 static volatile uint8_t kc, mod, modbuff;
 static volatile uint16_t kc_mapped;
 static volatile uint8_t keymapnum = 0; // current keymap number
@@ -231,7 +231,7 @@ void displayState(const char* s) {
 //////////////////////////////////////////////////////////////
 
 void setup() {
-  ckey = new C64keyboard();
+  ckey = new C128keyboard();
 
   u8g2.begin();
   Wire.begin();

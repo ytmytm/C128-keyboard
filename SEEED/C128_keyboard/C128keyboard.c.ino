@@ -248,7 +248,7 @@ void C128keyboard::clearAllKeys(void) {
 }
 
 
-C128keyboard::C64keyboard() {
+C128keyboard::C128keyboard() {
 
   // initialize the pins
   pinMode(ANALOG_SW_STROBE, OUTPUT);  // MT88XX strobe

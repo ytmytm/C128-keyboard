@@ -1,7 +1,4 @@
 
-#ifndef C128keyboard_h
-#define C128keyboard_h
-
 //  C64/C128 key maps: symbolic and positional
 //
 //  Maciej 'YTM/Elysium' Witkowiak
@@ -745,5 +742,3 @@ constexpr static uint8_t nkeymaps = sizeof(keymaps) / sizeof(keymaps[0]);
     ,KEY_ALT            // 0xe6 Keyboard Right Alt
     ,KEY_CBM            // 0xe7 Keyboard Right GUI
 */
-
-#endif
