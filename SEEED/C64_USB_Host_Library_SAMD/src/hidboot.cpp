@@ -126,21 +126,22 @@ void MouseReportParser::Parse(HID * /* hid */, uint32_t /* is_rpt_id */, uint32_
 
 void KeyboardReportParser::Parse(HID *hid, uint32_t /* is_rpt_id */, uint32_t /* len */, uint8_t *buf) {
 	// On error - return
-	if (buf[2] == 1)
-		return;
+	//if (buf[2] == 1)
+		//return;
 
 	//KBDINFO	*pki = (KBDINFO*)buf;
 
 	// provide event for changed control key state
 	if (prevState.bInfo[0x00] != buf[0x00]) {
 		OnControlKeysChanged(prevState.bInfo[0x00], buf[0x00]);
+		//buf[7] = buf [0] + 0xDD;
 	}
 
-	for (uint32_t i = 2; i < 8; i++) {
+	for (uint32_t i = 0; i < 8; i++) {
 		bool down = false;
 		bool up	  = false;
 
-		for (uint8_t j = 2; j < 8; j++) {
+		for (uint8_t j = 0; j < 8; j++) {
 			if (buf[i] == prevState.bInfo[j] && buf[i] != 1)
 				down = true;
 			if (buf[j] == prevState.bInfo[i] && prevState.bInfo[i] != 1)
@@ -148,10 +149,13 @@ void KeyboardReportParser::Parse(HID *hid, uint32_t /* is_rpt_id */, uint32_t /*
 		}
 		if (!down) {
 			HandleLockingKeys(hid, buf[i]);
-			OnKeyDown(*buf, buf[i]);
+			OnKeyDown(buf[0], buf[i]);			 
+			//OnKeyDown(*buf, buf[i]);
 		}
-		if (!up)
-			OnKeyUp(prevState.bInfo[0], prevState.bInfo[i]);
+		if (!up){
+			//OnKeyUp(prevState.bInfo[0], prevState.bInfo[i]);
+			OnKeyUp(buf[0], prevState.bInfo[i]);
+		}
 	}
 	for(uint32_t i = 0; i < 8; i++)
 		prevState.bInfo[i] = buf[i];
@@ -211,15 +215,15 @@ uint8_t KeyboardReportParser::OemToAscii(uint8_t mod, uint8_t key) {
                 if(kbdLockingKeys.kbdLeds.bmNumLock == 1)
                         return (key - 0x59 + '1');
         } else if(VALUE_WITHIN(key, 0x2d, 0x38)) {
-                if (ctrl) {
-                        switch (key) {
-                                case 0x2d: return (0x1f); /* US  ^_ */
-                                case 0x2f: return (0x1b); /* ESC ^[ */
-                                case 0x30: return (0x1d); /* GS  ^] */
-                                case 0x31: return (0x1c); /* FS  ^\ */
-                                default:   return (0x00);
-                        }
-                }
+                //if (ctrl) {
+                  //      switch (key) {
+                    //            case 0x2d: return (0x1f); /* US  ^_ */
+                      //          case 0x2f: return (0x1b); /* ESC ^[ */
+                        //        case 0x30: return (0x1d); /* GS  ^] */
+                          //      case 0x31: return (0x1c); /* FS  ^\ */
+                            //    default:   return (0x00);
+                        //}
+                //}
                 return ((shift) ? (uint8_t)pgm_read_byte(&getSymKeysUp()[key - 0x2d]) : (uint8_t)pgm_read_byte(&getSymKeysLo()[key - 0x2d]));
         } else if(VALUE_WITHIN(key, 0x54, 0x58))
                 return (uint8_t)pgm_read_byte(&getPadKeys()[key - 0x54]);
