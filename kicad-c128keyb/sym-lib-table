@@ -1,0 +1,4 @@
+(sym_lib_table
+  (lib (name "mt8808")(type "KiCad")(uri "${KIPRJMOD}/libraries/lib/mt8808.kicad_sym")(options "")(descr ""))
+  (lib (name "SEEDUINO XIAO")(type "Legacy")(uri "${KIPRJMOD}/Seeeduino XIAO KICAD/Seeeduino XIAO.lib")(options "")(descr ""))
+)
