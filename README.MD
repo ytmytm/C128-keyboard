@@ -54,7 +54,7 @@ as well as [schematic](kicad-c128keyb/plots/kicad-c128keyb.pdf)
 C128D has +5V power exposed on pin 4 of the keyboard port. C128DCR doesn't have this feature.
 It's quite easy to make an internal modification in C128DCR and add that missing connection.
 
-Here is one wire added to the [bottom part of the C128DCR mainboard](kicad-c128keyb/docs/c128dcr-keyboard-5v.jpg)
+Here is one wire added to the [bottom part of the C128DCR mainboard](docs/c128dcr-keyboard-5v.jpg)
 
 If you are unwilling to open your C128DCR, so you can provide external power from nearby tape or joystick port instead.
 In this case keep the jumper JP1 open and provide +5V to the `Ext. power` connector. Mind the polarity.
