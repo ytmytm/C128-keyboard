@@ -8,6 +8,8 @@ to achieve my goal of supporting full C128 keyboard.
 
 I have kept only USB section as PS/2 keyboards are becoming retro themselves.
 
+This project requires SEEED XIAO SAMD21, which has USB-C socket. USB-C keyboards are rare yet. I use OTG USB-A (female) to USB-C (male) adapter to connect standard PC keyboard.
+
 -- Maciej 'YTM/Elysium' Witkowiak
 
 # Features
