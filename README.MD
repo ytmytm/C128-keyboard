@@ -10,6 +10,8 @@ I have kept only USB section as PS/2 keyboards are becoming retro themselves.
 
 This project requires SEEED XIAO SAMD21, which has USB-C socket. USB-C keyboards are rare yet. I use OTG USB-A (female) to USB-C (male) adapter to connect standard PC keyboard.
 
+<img src="media/03.assembled.jpg" alt="Assembled adapter with OTG adapter and wireless keyboard dongle" width=800>
+
 -- Maciej 'YTM/Elysium' Witkowiak
 
 # Features
@@ -31,6 +33,8 @@ as well as [schematic](kicad-c128keyb/plots/kicad-c128keyb.pdf)
 
 ## Parts
 
+<img src="media/04.pcb.jpg" alt="PCB top-down view" width=800>
+
 * SEEED XIAO SAMD21 (important: SAMD21, not RP2040)
 * U1: MT8816 or MT8812
 * U2: 74HCT595
@@ -41,6 +45,8 @@ as well as [schematic](kicad-c128keyb/plots/kicad-c128keyb.pdf)
 * socket for 26-pin flat ribbon cable / 2x13 pin headers (option 2)
 * pin headers and sockets
 * 128x32 SSD1306 I2C OLED display (optional)
+
+<img src="media/02.parts.jpg" alt="PCB top-down view" width=800>
 
 ## Features
 
@@ -56,7 +62,9 @@ as well as [schematic](kicad-c128keyb/plots/kicad-c128keyb.pdf)
 C128D has +5V power exposed on pin 4 of the keyboard port. C128DCR doesn't have this feature.
 It's quite easy to make an internal modification in C128DCR and add that missing connection.
 
-Here is one wire added to the [bottom part of the C128DCR mainboard](docs/c128dcr-keyboard-5v.jpg)
+Here is one wire added to the bottom part of the C128DCR mainboard that connects +5V from joystick port to pin 4 of the keyboard port.
+
+<img src="media/00.c128dcr-keyboard-5v.jpg" alt="C128DCR modification to route +5V to the keyboard port" width=800>
 
 If you are unwilling to open your C128DCR, you can provide external power from nearby tape or joystick port instead.
 In this case keep the jumper JP1 open and provide +5V to the `Ext. power` connector. Mind the polarity.
@@ -75,6 +83,8 @@ You need:
 * 26-wire flat ribbon cable
 * 26-pin ribbon cable connectors (male for PCB, female for crimping on the cable)
 * DE25 male crimp connector for ribbon cable
+
+<img src="media/01.flatcable.jpg" alt="Completed 26-to-25 flat ribbon cable" width=800>
 
 Steps:
 
