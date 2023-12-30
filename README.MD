@@ -103,6 +103,10 @@ Use Arduino IDE to compile and flash sketch from [SEEED/C128_keyboard/C128_keybo
 
 # Keyboard mapping
 
+Key maps are defined in [SEEED/C128_keyboard/keymaps.h](SEEED/C128_keyboard/keymaps.h). You can modify existing ones or add your own.
+
+If you add a new keymap you need to add it to `keymaps[]` array at the bottom of that file. The first key map in that array is the default one.
+
 ## C128 positional (default)
 
 Top row has keys assigned in C128 fashion. This layout works best if you have muscle memory of the original keyboard.
