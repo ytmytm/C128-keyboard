@@ -46,7 +46,7 @@ as well as [schematic](kicad-c128keyb/plots/kicad-c128keyb.pdf)
 
 <img src="kicad-c128keyb/plots/kicad-c128keyb-pcb.jpg" alt="Adapter overview" width=800>
 
-- can be plugged in directly into keyboard port if male DB25 socket is soldered in
+- can be plugged directly into keyboard port if male DB25 socket is soldered
 - alternatively a flat ribbon cable can be used for both internal or external connection
 - can be powered from keyboard port or from external source, selected by a jumper
 - can be equipped with a 128x32 I2C OLED display for debug purposes
@@ -58,7 +58,7 @@ It's quite easy to make an internal modification in C128DCR and add that missing
 
 Here is one wire added to the [bottom part of the C128DCR mainboard](docs/c128dcr-keyboard-5v.jpg)
 
-If you are unwilling to open your C128DCR, so you can provide external power from nearby tape or joystick port instead.
+If you are unwilling to open your C128DCR, you can provide external power from nearby tape or joystick port instead.
 In this case keep the jumper JP1 open and provide +5V to the `Ext. power` connector. Mind the polarity.
 
 Options:
@@ -144,11 +144,11 @@ Other changes:
 
 ## C64 positonal
 
-Same as C128 positional, except that numpad keys are mapped to 1-8 keys above QWERTY row
+Same as C128 positional, except that numpad keys are mapped to 1-0 keys above QWERTY row
 
 ## C64 symbolic
 
-Same as C128 symbolic, except that numpad keys are mapped to 1-8 keys above QWERTY row
+Same as C128 symbolic, except that numpad keys are mapped to 1-0 keys above QWERTY row
 
 # Joystick mode
 
