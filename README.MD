@@ -33,6 +33,8 @@ Use KiCad to open the project in [kicad-c128keyb](kicad-c128keyb/) folder.
 In the [kicad-c128keyb/plots](kicad-c128keyb/plots) you will find ready to use Gerber files for manufacturing
 as well as [schematic](kicad-c128keyb/plots/kicad-c128keyb.pdf)
 
+The easiest way to order PCBs is through the shared project page on PCBWAY. Simply [click this link](https://www.pcbway.com/project/shareproject/C128_USB_Keyboard_adapter_dcf19251.html) and add to your cart.
+
 ## Parts
 
 <img src="media/04.pcb.jpg" alt="PCB top-down view" width=800>
