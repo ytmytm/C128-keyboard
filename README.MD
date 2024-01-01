@@ -14,6 +14,8 @@ This project requires SEEED XIAO SAMD21, which has USB-C socket. USB-C keyboards
 
 -- Maciej 'YTM/Elysium' Witkowiak
 
+<a href="https://www.pcbway.com/project/shareproject/C128_USB_Keyboard_adapter_dcf19251.html"><img src="https://www.pcbway.com/project/img/images/frompcbway-1220.png" alt="PCB from PCBWay" /></a>
+
 # Features
 
 - can be used with any USB keyboard, including wireless ones
