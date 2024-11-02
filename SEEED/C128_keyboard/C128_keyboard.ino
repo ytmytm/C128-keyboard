@@ -60,6 +60,8 @@ constexpr const unsigned long inactivePeriodMillis = 5000; // keep the message o
 // 128x32
 // https://github.com/olikraus/u8g2
 
+bool displayPresent = false;
+
 #include <U8g2lib.h>
 
 U8G2_SSD1306_128X32_UNIVISION_1_HW_I2C u8g2(U8G2_R0);
@@ -187,6 +189,7 @@ void keyReleased() {
 //////////////////////////////////////////////////////////////
 
 void displayKeyMap() {
+  if (!displayPresent) { return; }
   u8g2.firstPage();
   do {
    u8g2.setFlipMode(true);
@@ -203,6 +206,7 @@ void displayKeyMap() {
 
 
 void displayKey() {
+  if (!displayPresent) { return; }
   u8g2.firstPage();
   do {
    u8g2.setFlipMode(true);
@@ -219,6 +223,7 @@ void displayKey() {
 
 
 void displayState(const char* s) {
+  if (!displayPresent) { return; }
   u8g2.firstPage();
   do {
    u8g2.setFlipMode(true);
@@ -233,8 +238,16 @@ void displayState(const char* s) {
 void setup() {
   ckey = new C128keyboard();
 
-  u8g2.begin();
   Wire.begin();
+
+  // detect if display is connected
+  Wire.beginTransmission(0x3C);
+  displayPresent = (0 == Wire.endTransmission());
+
+  if (displayPresent) {
+    u8g2.begin();
+  }
+
   usb.Init();
 
   displayState("Hello world!");
@@ -246,7 +259,7 @@ uint32_t lastUSBstate = 0;
 
 void loop() {
   currentMillis = millis();
-  if (currentMillis - lastPressedMillis > inactivePeriodMillis) {
+  if (displayPresent && (currentMillis - lastPressedMillis > inactivePeriodMillis)) {
     // clear screen if there was no activity for inactivePeriodMillis
     u8g2.firstPage();
     do { } while ( u8g2.nextPage() );
