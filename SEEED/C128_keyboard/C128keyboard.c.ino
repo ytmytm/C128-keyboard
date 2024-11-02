@@ -21,6 +21,9 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 */
+
+#include <map>
+
 #include "C128keyboard.h"
 
 // static keymap definitions, include only once
@@ -106,6 +109,9 @@ const char* get_mapped_key_name(auto keycode) {
 
 //////////////////////////////////////////////////////////////
 
+// This map will store the original keycode for each pressed key
+std::map<uint8_t, uint16_t> keyStateTable;
+
 constexpr const uint8_t C128keyboard::getNumKeyMaps(void) { return nkeymaps; };
 
 const char* C128keyboard::getCurrentKeyMapName(void) { return keymaps[keymapnum].getName(); };
@@ -188,7 +194,7 @@ uint16_t C128keyboard::mapkeycode(uint8_t kc, uint8_t mod) {
 }
 
 
-void C128keyboard::c64key(uint16_t c, bool kpress) {
+void C128keyboard::c64key(uint16_t c, bool kpress, uint8_t kc) {
 
     // return early
     if (c == IGNORE_KEYCODE) return;
@@ -211,6 +217,23 @@ void C128keyboard::c64key(uint16_t c, bool kpress) {
         // only after first press or after last release
         setswitch(JOY2_ROUTE_GND, kpress);
       }
+    }
+
+    if (kpress) {
+        // Map keycode and store in key state table
+        keyStateTable[kc] = c;
+    } else {
+        // Key release event
+        // Retrieve keycode from key state table
+        // Retrieve the stored keycode
+        auto it = keyStateTable.find(kc);
+        if (it != keyStateTable.end()) {
+            c = it->second;
+            keyStateTable.erase(it);  // Remove the key from the state table
+        } else {
+            // If the key wasn't found, ignore the release event
+            return;
+        }
     }
 
     // Differential shift conversion
