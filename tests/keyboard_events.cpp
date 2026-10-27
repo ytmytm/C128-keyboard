@@ -415,6 +415,22 @@ int main() {
         assert(!pins[NMI_PIN]);
         clean();
     }
+    // RESTORE is an action, not matrix switch zero (DEL).
+    for (bool restoreReleasedFirst : {false, true}) {
+        report(0x40, {0x2a});
+        assert(matrix[KEY_DEL] && pins[NMI_PIN]);
+        if (restoreReleasedFirst) {
+            report(0, {0x2a});
+            assert(matrix[KEY_DEL] && !pins[NMI_PIN]);
+        } else {
+            report(0x40);
+            assert(!matrix[KEY_DEL] && pins[NMI_PIN]);
+        }
+        report(0);
+        assert(!matrix[KEY_DEL] && !pins[NMI_PIN]);
+        clean();
+    }
+
     // Reset must clear the actual CAPS pin, rather than a key action code.
     keymapnum = 1;
     report(0, {0x45});

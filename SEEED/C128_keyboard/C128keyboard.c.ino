@@ -202,7 +202,7 @@ void C128keyboard::c64key(uint16_t c, bool kpress, uint8_t kc) {
       // Several USB keys can drive the same matrix switch (e.g. FIRE).
       bool held = false;
       for (const auto &entry : keyStateTable) {
-        if ((entry.second & 0xff) == (c & 0xff)) held = true;
+        if (entry.second < KEY_RESTORE && (entry.second & 0xff) == (c & 0xff)) held = true;
       }
       setswitch(c & 0xff, kpress || held);
     }
