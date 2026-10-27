@@ -115,59 +115,25 @@ const char* C128keyboard::getCurrentKeyMapName(void) { return keymaps[keymapnum]
 
 uint16_t C128keyboard::mapkeycode(uint8_t kc) {
 
-    if (joymode && joynum==1) {
-      // in joystick mode map numpad 4/6/2/8 to directions and 5/numpad 0/right control to FIRE
-      // pass through to current keymap for any other key
-      if (kc == 0xe4) { // right CTRL
-        return JOY1_FIRE;
-      }
-      switch(kc) {
-        case 0x60:  // keypad 8
-          return JOY1_UP;
-          break;
-        case 0x5a:  // keypad 2
-          return JOY1_DOWN;
-          break;
-        case 0x5c:  // keypad 4
-          return JOY1_LEFT;
-          break;
-        case 0x5e:  // keypad 6
-          return JOY1_RIGHT;
-          break;
-        case 0x5d:  // keypad 5
-        case 0x62:  // keypad 0
-          return JOY1_FIRE;
-          break;
-        default:
-          break;
-      }
-    }
-
-    if (joymode && joynum==2) {
-      // in joystick mode map numpad 4/6/2/8 to directions and 5/numpad 0/right control to FIRE
-      // pass through to current keymap for any other key
-      if (kc == 0xe4) { // right CTRL
-        return JOY2_FIRE | MOD_JOY2;
-      }
-      switch(kc) {
-        case 0x60:  // keypad 8
-          return JOY2_UP | MOD_JOY2;
-          break;
-        case 0x5a:  // keypad 2
-          return JOY2_DOWN | MOD_JOY2;
-          break;
-        case 0x5c:  // keypad 4
-          return JOY2_LEFT | MOD_JOY2;
-          break;
-        case 0x5e:  // keypad 6
-          return JOY2_RIGHT | MOD_JOY2;
-          break;
-        case 0x5d:  // keypad 5
-        case 0x62:  // keypad 0
-          return JOY2_FIRE | MOD_JOY2;
-          break;
-        default:
-          break;
+    if (joymode && (joynum == 1 || joynum == 2)) {
+      struct JoystickKey {
+        uint8_t usage;
+        uint8_t port1;
+        uint8_t port2;
+      };
+      static constexpr std::array<JoystickKey, 7> joystickKeys = {{
+        {0x60, JOY1_UP,    JOY2_UP},    // keypad 8
+        {0x5a, JOY1_DOWN,  JOY2_DOWN},  // keypad 2
+        {0x5c, JOY1_LEFT,  JOY2_LEFT},  // keypad 4
+        {0x5e, JOY1_RIGHT, JOY2_RIGHT}, // keypad 6
+        {0x5d, JOY1_FIRE,  JOY2_FIRE},  // keypad 5
+        {0x62, JOY1_FIRE,  JOY2_FIRE},  // keypad 0
+        {0xe4, JOY1_FIRE,  JOY2_FIRE},  // right Ctrl
+      }};
+      for (const auto &key : joystickKeys) {
+        if (key.usage == kc) {
+          return joynum == 1 ? key.port1 : key.port2 | MOD_JOY2;
+        }
       }
     }
 

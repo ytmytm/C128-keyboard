@@ -300,6 +300,10 @@ int main() {
     };
     for (joynum = 1; joynum <= 2; ++joynum) {
         joymode = true;
+        report(0, {4}); // keys outside the joystick table retain keyboard mapping
+        assert(matrix[KEY_A] && joykeycount == 0);
+        report(0);
+        clean();
         for (unsigned i = 0; i < 6; ++i) {
             report(0, {joyUsages[i]});
             assert(matrix[joyTargets[joynum - 1][i]]);
