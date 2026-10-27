@@ -197,6 +197,9 @@ void C128keyboard::c64key(uint16_t c, bool kpress, uint8_t kc) {
     const bool updateShifts = c == KEY_LSHIFT || c == KEY_RSHIFT || (c & MOD_SHIFT);
     c &= ~MOD_SHIFT;
 
+    // Establish Shift before closing a key; release a key before restoring Shift.
+    if (updateShifts && kpress) updateShiftSwitches();
+
     // Process normal keypress
     if (c != KEY_LSHIFT && c != KEY_RSHIFT) {
       // Several USB keys can drive the same matrix switch (e.g. FIRE).
@@ -206,7 +209,7 @@ void C128keyboard::c64key(uint16_t c, bool kpress, uint8_t kc) {
       }
       setswitch(c & 0xff, kpress || held);
     }
-    if (updateShifts) updateShiftSwitches();
+    if (updateShifts && !kpress) updateShiftSwitches();
 }
 
 

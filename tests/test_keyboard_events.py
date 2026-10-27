@@ -89,7 +89,13 @@ std::map<uint8_t, uint16_t> keyStateTable;
 std::map<uint8_t, bool> matrix;
 C128keyboard *ckey;
 unsigned matrixWrites = 0;
-void setswitch(uint8_t key, bool down) { matrix[key] = down; ++matrixWrites; }
+bool captureTransitions = false;
+std::vector<std::pair<uint8_t, bool>> transitions;
+void setswitch(uint8_t key, bool down) {
+    matrix[key] = down;
+    ++matrixWrites;
+    if (captureTransitions) transitions.emplace_back(key, down);
+}
 std::map<int, bool> pins;
 void digitalWrite(int pin, bool value) { assert(pin >= 0 && pin <= 10); pins[pin] = value; }
 void pinMode(int pin, int) { assert(pin >= 0 && pin <= 10); }

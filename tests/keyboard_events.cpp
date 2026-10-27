@@ -451,6 +451,39 @@ int main() {
     assert(matrix[KEY_A] && keyStateTable.size() == 1);
     ckey->c64key(IGNORE_KEYCODE, false, 4);
     clean();
+    // Check write order, not just final state: Shift first on press, key first on release.
+    for (keymapnum = 0; keymapnum < nkeymaps; ++keymapnum) {
+        const uint8_t usage = keymapnum == 0 ? 0x50 : 0x3b;
+        const uint8_t target = keymapnum == 0 ? KEY_HORZ_CSR : KEY_F1;
+        captureTransitions = true;
+        transitions.clear();
+        report(0, {usage});
+        assert((transitions == std::vector<std::pair<uint8_t, bool>>{
+            {KEY_LSHIFT, true}, {KEY_RSHIFT, false}, {target, true}}));
+        transitions.clear();
+        report(0);
+        assert((transitions == std::vector<std::pair<uint8_t, bool>>{
+            {target, false}, {KEY_LSHIFT, false}, {KEY_RSHIFT, false}}));
+        captureTransitions = false;
+        clean();
+        if (keymapnum % 2 == 1) {
+            report(0x22);
+            captureTransitions = true;
+            transitions.clear();
+            report(0x22, {0x1f});
+            assert((transitions == std::vector<std::pair<uint8_t, bool>>{
+                {KEY_LSHIFT, false}, {KEY_RSHIFT, false}, {KEY_AT, true}}));
+            transitions.clear();
+            report(0x22);
+            assert((transitions == std::vector<std::pair<uint8_t, bool>>{
+                {KEY_AT, false}, {KEY_LSHIFT, true}, {KEY_RSHIFT, true}}));
+            captureTransitions = false;
+            report(0);
+            clean();
+        }
+    }
+    keymapnum = 0;
+
     std::cout << "PASS: six slots, invalid reports, differential Shift, directions, reset, keymap and control pins\n";
     std::cout << "PASS: modifier orders, simultaneous changes, both Shifts, typing, all keymaps, slots, repeated reports, errors, Shift Lock, joystick FIRE and saved releases\n";
 }
