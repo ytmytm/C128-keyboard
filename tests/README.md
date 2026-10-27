@@ -8,7 +8,9 @@ python3 tests/test_keyboard_events.py
 
 Requires Python 3 and GCC's g++ with AddressSanitizer and
 UndefinedBehaviorSanitizer. Compilation uses `-Wall -Wextra -Werror`;
-warnings fail the build.
+warnings fail the build. The language standard is C++14, matching the
+[Seeed SAMD compiler configuration](https://github.com/Seeed-Studio/ArduinoCore-samd/blob/master/platform.txt).
+Compile-time assertions also verify key lookup and modifier table sizes.
 
 The Python runner reads functions directly from the firmware and compiles them
 with the C++ scenarios in `keyboard_events.cpp`. It uses the real controller

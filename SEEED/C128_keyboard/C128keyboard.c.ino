@@ -96,14 +96,12 @@ void setswitch(uint8_t c,bool kstate) {
 
 //////////////////////////////////////////////////////////////
 
-const char* get_mapped_key_name(auto keycode) {
-      if (keycode & MOD_SHIFT) { keycode -= MOD_SHIFT; };
-      for (auto i=0;i<key_infos_nsize;i++) {
-        if (key_infos[i].get_keycode() == keycode) {
-          return key_infos[i].get_name();
-        }
-      }
-      return NULL;
+const char* get_mapped_key_name(uint16_t keycode) {
+    keycode &= ~MOD_SHIFT;
+    for (const auto &info : key_infos) {
+        if (info.get_keycode() == keycode) return info.get_name();
+    }
+    return nullptr;
 }
 
 //////////////////////////////////////////////////////////////

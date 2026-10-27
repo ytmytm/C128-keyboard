@@ -14,6 +14,16 @@ void clean() {
 int main() {
     C128keyboard instance;
     ckey = &instance;
+    // Lookup is genuinely constexpr under C++14, including unknown usages.
+    static_assert(C128_pos_keys[0].get() == IGNORE_KEYCODE, "reserved usage");
+    static_assert(keymaps[0].getKey(4).get() == KEY_A, "constexpr key lookup");
+    static_assert(keymaps[0].getKey(0xff).get() == IGNORE_KEYCODE, "unknown usage");
+    static_assert(keymaps[1].getKey(0x1f).get(true) == (KEY_AT | MOD_SHIFT), "shifted mapping");
+    static_assert(keymaps[0].getMods().size() == 8, "eight modifier bits");
+    assert(std::string(get_mapped_key_name(KEY_A)) == "A");
+    assert(std::string(get_mapped_key_name(KEY_A | MOD_SHIFT)) == "A");
+    assert(get_mapped_key_name(0xffff) == nullptr);
+
     // Both press orders, both release orders, and simultaneous transitions.
     for (uint8_t shift : {2, 32}) {
         for (bool ctrlFirst : {false, true}) {

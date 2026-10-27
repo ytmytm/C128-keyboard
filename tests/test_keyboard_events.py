@@ -34,6 +34,7 @@ classes = header[header.index('class C64KeyInfo'):header.rindex('#endif')]
 parser_header = read(SRC / 'hidboot.h')
 constructor = function(parser_header, 'KeyboardReportParser()')
 source = r'''
+#include <array>
 #include <cassert>
 #include <cstdint>
 #include <cstring>
@@ -104,6 +105,7 @@ controller = read(SRC / 'KeyboardController.cpp')
 for name in ('OnKeyDown', 'OnKeyUp', 'OnControlKeysChanged'):
     source += '\n' + function(controller, 'void KeyboardController::' + name + '(')
 source += '\n' + function(firmware, 'constexpr uint8_t C128keyboard::getNumKeyMaps(')
+source += '\n' + function(firmware, 'const char* get_mapped_key_name(')
 source += '\n' + function(firmware, 'void resetMT88(')
 source += '\n' + function(firmware, 'C128keyboard::C128keyboard(')
 for name in ('mapkeycode', 'updateShiftSwitches', 'c64key', 'clearAllKeys'):
@@ -115,6 +117,6 @@ with tempfile.TemporaryDirectory(prefix='c128-events-') as tmp:
     cpp = Path(tmp) / 'events.cpp'
     exe = Path(tmp) / 'events'
     cpp.write_text(source)
-    subprocess.run(['g++', '-std=c++20', '-Wall', '-Wextra', '-Werror',
+    subprocess.run(['g++', '-std=c++14', '-Wall', '-Wextra', '-Werror',
                     '-fsanitize=address,undefined', '-g', str(cpp), '-o', str(exe)], check=True)
     subprocess.run([str(exe)], check=True)

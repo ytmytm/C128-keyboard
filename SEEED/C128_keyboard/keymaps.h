@@ -122,7 +122,6 @@ constexpr static C64KeyInfo key_infos[] = {
   ,{ IGNORE_KEYCODE, "ignore key" }
 };
 
-constexpr static uint16_t key_infos_nsize = sizeof(key_infos) / sizeof(key_infos[0]);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -141,7 +140,7 @@ constexpr static uint16_t key_infos_nsize = sizeof(key_infos) / sizeof(key_infos
 
 // positional
 // c128 positional (top row cursors moved to win/alt (space) menu/ctrl; left control is cbm, shifts unchanged, altgr is RESTORE)
-constexpr static uint16_t C128_pos_mods[8] = {KEY_CBM,KEY_LSHIFT,C128_KEY_DOWN,C128_KEY_UP,C128_KEY_RIGHT,KEY_RSHIFT,KEY_RESTORE,IGNORE_KEYCODE};
+constexpr static ModifierMap C128_pos_mods = {{KEY_CBM,KEY_LSHIFT,C128_KEY_DOWN,C128_KEY_UP,C128_KEY_RIGHT,KEY_RSHIFT,KEY_RESTORE,IGNORE_KEYCODE}};
 constexpr static C64Key C128_pos_keys[] = {
    { 0x00, IGNORE_KEYCODE, IGNORE_KEYCODE }  // Reserved
   ,{ 0x01, IGNORE_KEYCODE, IGNORE_KEYCODE }  // ErrorRollOver
@@ -286,7 +285,7 @@ constexpr static uint16_t C128_pos_nkeys = sizeof(C128_pos_keys) / sizeof(C128_p
 // symbolic
 // C128 top row cursors assigned to shift+cursor arrows
 // c128 symbolic (both controls are CTRL, both shifts unchanged, left/right WIN is CBM, left ALT is C128 ALT, altgr is RESTORE)
-constexpr static uint16_t C128_sym_mods[8] = {KEY_CTRL, KEY_LSHIFT, C128_KEY_ALT, KEY_CBM, KEY_CTRL, KEY_RSHIFT, KEY_RESTORE, KEY_CBM};
+constexpr static ModifierMap C128_sym_mods = {{KEY_CTRL, KEY_LSHIFT, C128_KEY_ALT, KEY_CBM, KEY_CTRL, KEY_RSHIFT, KEY_RESTORE, KEY_CBM}};
 constexpr static C64Key C128_sym_keys[] = {
    { 0x00, IGNORE_KEYCODE, IGNORE_KEYCODE }  // Reserved
   ,{ 0x01, IGNORE_KEYCODE, IGNORE_KEYCODE }  // ErrorRollOver
@@ -431,7 +430,7 @@ constexpr static uint16_t C128_sym_nkeys = sizeof(C128_sym_keys) / sizeof(C128_s
 // positional
 // c64 positional (top row cursors moved to win/alt (space) menu/ctrl; left control is cbm, shifts unchanged, altgr is RESTORE)
 // the only difference to c128 positional is in numpad mapping - it goes to plain digit keys and RETURN
-constexpr static uint16_t C64_pos_mods[8] = {KEY_CBM,KEY_LSHIFT,C128_KEY_DOWN,C128_KEY_UP,C128_KEY_RIGHT,KEY_RSHIFT,KEY_RESTORE,IGNORE_KEYCODE};
+constexpr static ModifierMap C64_pos_mods = {{KEY_CBM,KEY_LSHIFT,C128_KEY_DOWN,C128_KEY_UP,C128_KEY_RIGHT,KEY_RSHIFT,KEY_RESTORE,IGNORE_KEYCODE}};
 constexpr static C64Key C64_pos_keys[] = {
    { 0x00, IGNORE_KEYCODE, IGNORE_KEYCODE }  // Reserved
   ,{ 0x01, IGNORE_KEYCODE, IGNORE_KEYCODE }  // ErrorRollOver
@@ -577,7 +576,7 @@ constexpr static uint16_t C64_pos_nkeys = sizeof(C64_pos_keys) / sizeof(C64_pos_
 // c64 symbolic (both controls are CTRL, both shifts unchanged, left/right WIN is CBM, left ALT is C128 ALT, altgr is RESTORE)
 // C128 top row cursors assigned to shift+cursor arrows
 // the only difference to c128 symbolic is in numpad mapping - it goes to plain digit keys and RETURN
-constexpr static uint16_t C64_sym_mods[8] = {KEY_CTRL, KEY_LSHIFT, C128_KEY_ALT, KEY_CBM, KEY_CTRL, KEY_RSHIFT, KEY_RESTORE, KEY_CBM};
+constexpr static ModifierMap C64_sym_mods = {{KEY_CTRL, KEY_LSHIFT, C128_KEY_ALT, KEY_CBM, KEY_CTRL, KEY_RSHIFT, KEY_RESTORE, KEY_CBM}};
 constexpr static C64Key C64_sym_keys[] = {
    { 0x00, IGNORE_KEYCODE, IGNORE_KEYCODE }  // Reserved
   ,{ 0x01, IGNORE_KEYCODE, IGNORE_KEYCODE }  // ErrorRollOver

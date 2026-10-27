@@ -26,6 +26,8 @@
 #ifndef C128keyboard_h
 #define C128keyboard_h
 
+#include <array>
+
 #if defined(ARDUINO) && ARDUINO >= 100
 #include "Arduino.h"
 #else
@@ -97,35 +99,36 @@ class C64Key {
     m_keycode(keycode), m_unshifted(unshifted), m_shifted(shifted)
     {};
     constexpr auto get_keycode() const { return m_keycode; }
-    auto get(bool shifted = false) const {
-      if (shifted) { return m_shifted; } else { return m_unshifted; };
+    constexpr uint16_t get(bool shifted = false) const {
+      return shifted ? m_shifted : m_unshifted;
     }
   private:
     const int16_t m_keycode;
     const uint16_t m_unshifted, m_shifted;
 };
 
+using ModifierMap = std::array<uint16_t, 8>;
+
 class C64KeyMap {
   public:
-    constexpr C64KeyMap(const char* name, const C64Key *map, const uint16_t mapsize, const uint16_t mods[8]) :
+    constexpr C64KeyMap(const char* name, const C64Key *map, const uint16_t mapsize, const ModifierMap &mods) :
     m_name(name), m_map(map), m_mapsize(mapsize), m_mods(mods)
     {};
     constexpr const char* getName() const { return m_name; };
-    constexpr auto getMods() const { return m_mods; };
-    auto getKey(auto keycode) const {
-      for (auto i=0;i<m_mapsize;i++) {
+    constexpr const ModifierMap &getMods() const { return m_mods; };
+    constexpr C64Key getKey(uint8_t keycode) const {
+      for (uint16_t i = 0; i < m_mapsize; ++i) {
         if (m_map[i].get_keycode() == keycode) {
           return m_map[i];
         }
       }
-      return nullkey;
+      return C64Key(0, IGNORE_KEYCODE, IGNORE_KEYCODE);
     }
   private:
-    constexpr static C64Key nullkey = C64Key(0,IGNORE_KEYCODE,IGNORE_KEYCODE);
     const char *m_name;
     const C64Key *m_map;
     const uint16_t m_mapsize;
-    const uint16_t *m_mods;
+    const ModifierMap &m_mods;
 };
 
 #endif
