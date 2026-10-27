@@ -36,7 +36,7 @@ void resetMT88(void) {
 
   digitalWrite(NMI_PIN, LOW);
   digitalWrite(C128_40_80_PIN, LOW);
-  digitalWrite(C128_CAPS_KEY, LOW);
+  digitalWrite(C128_CAPS_PIN, LOW);
 
   digitalWrite(ANALOG_SW_DATA , LOW);
   digitalWrite(ANALOG_SW_RESET, HIGH);
@@ -197,6 +197,17 @@ void C128keyboard::c64key(uint16_t c, bool kpress, uint8_t kc) {
         keyStateTable.erase(it);
     }
 
+    // Both AltGr and PageUp can hold RESTORE. Releasing either source must
+    // leave NMI asserted until the final source is released.
+    if (c == KEY_RESTORE) {
+      bool held = false;
+      for (const auto &entry : keyStateTable) {
+        if (entry.second == KEY_RESTORE) held = true;
+      }
+      digitalWrite(NMI_PIN, held);
+      return;
+    }
+
     if (c == KEY_LSHIFT) lshift = kpress;
     if (c == KEY_RSHIFT) rshift = kpress;
 
@@ -244,6 +255,7 @@ void C128keyboard::c64key(uint16_t c, bool kpress, uint8_t kc) {
 
 void C128keyboard::clearAllKeys(void) {
   keyStateTable.clear();
+  digitalWrite(NMI_PIN, LOW);
   joykeycount = 0;
   lshift = false;
   rshift = false;
@@ -263,7 +275,7 @@ C128keyboard::C128keyboard() {
 
   pinMode(NMI_PIN, OUTPUT);
   pinMode(C128_40_80_PIN, OUTPUT);
-  pinMode(C128_CAPS_KEY, OUTPUT);
+  pinMode(C128_CAPS_PIN, OUTPUT);
 
   resetMT88();
 

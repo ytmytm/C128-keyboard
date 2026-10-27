@@ -135,7 +135,7 @@ void keyPressed() {
       }
       break;
     case KEY_RESTORE:
-      digitalWrite (NMI_PIN, HIGH);
+      ckey->c64key(kc_mapped, kpress, kc);
       displayState("NMI");
       break;
     case C128_40_80_KEY:
@@ -171,9 +171,8 @@ void keyReleased() {
   kc_mapped = ckey->mapkeycode(kc,mod);
   displayKey();
 
-  // Restore is a separate output. Matrix keys release their saved mapping,
-  // even if the current map now translates this usage to a special action.
-  if (kc_mapped == KEY_RESTORE) digitalWrite(NMI_PIN, LOW);
+  // Release the mapping saved on key-down, including momentary RESTORE.
+  // The current keymap or joystick mode may have changed in the meantime.
   ckey->c64key(kc_mapped, kpress, kc);
 }
 
