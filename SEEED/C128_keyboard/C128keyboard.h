@@ -84,8 +84,9 @@ class C128keyboard {
   public:
     C128keyboard();
     void c64key(uint16_t c, bool kpress, uint8_t kc);
-    uint16_t mapkeycode(uint8_t kc, uint8_t mod);
+    uint16_t mapkeycode(uint8_t kc);
     void clearAllKeys(void);
+    void updateShiftSwitches(void);
     constexpr uint8_t getNumKeyMaps(void);
     const char* getCurrentKeyMapName(void);
 };

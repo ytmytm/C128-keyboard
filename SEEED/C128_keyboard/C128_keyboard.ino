@@ -110,7 +110,7 @@ void keyPressed() {
   kc = keyboard.getOemKey();
   mod = keyboard.getModifiers();
   kpress = true;
-  kc_mapped = ckey->mapkeycode(kc,mod);
+  kc_mapped = ckey->mapkeycode(kc);
   displayKey();
 
   // handle special key functions
@@ -127,7 +127,7 @@ void keyPressed() {
       break;
     case KEY_SHIFT_LOCK:
       shiftlock = !shiftlock;
-      setswitch(KEY_LSHIFT, lshift || shiftlock || virtshift);
+      ckey->updateShiftSwitches();
       if (shiftlock) {
         displayState("shift lock on");
       } else {
@@ -168,7 +168,7 @@ void keyReleased() {
   kc = keyboard.getOemKey();
   mod = keyboard.getModifiers();
   kpress = false;
-  kc_mapped = ckey->mapkeycode(kc,mod);
+  kc_mapped = ckey->mapkeycode(kc);
   displayKey();
 
   // Release the mapping saved on key-down, including momentary RESTORE.

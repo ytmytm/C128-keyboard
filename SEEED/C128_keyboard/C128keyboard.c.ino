@@ -115,7 +115,7 @@ constexpr uint8_t C128keyboard::getNumKeyMaps(void) { return nkeymaps; };
 
 const char* C128keyboard::getCurrentKeyMapName(void) { return keymaps[keymapnum].getName(); };
 
-uint16_t C128keyboard::mapkeycode(uint8_t kc, uint8_t /* mod */) {
+uint16_t C128keyboard::mapkeycode(uint8_t kc) {
 
     if (joymode && joynum==1) {
       // in joystick mode map numpad 4/6/2/8 to directions and 5/numpad 0/right control to FIRE
@@ -183,6 +183,19 @@ uint16_t C128keyboard::mapkeycode(uint8_t kc, uint8_t /* mod */) {
 }
 
 
+// Shift Lock, physical modifiers and differential mappings share the same
+// switches. Recompute them from all held keys rather than restoring them on
+// the release of just one differential key.
+void C128keyboard::updateShiftSwitches(void) {
+    bool inverted = false;
+    for (const auto &entry : keyStateTable) {
+        if (entry.second & MOD_SHIFT) inverted = true;
+    }
+    const bool left = lshift || shiftlock || virtshift;
+    setswitch(KEY_LSHIFT, inverted ? !(left || rshift) : left);
+    setswitch(KEY_RSHIFT, inverted ? false : rshift);
+}
+
 void C128keyboard::c64key(uint16_t c, bool kpress, uint8_t kc) {
 
     // Resolve releases before any side effects: the active keymap or
@@ -217,32 +230,11 @@ void C128keyboard::c64key(uint16_t c, bool kpress, uint8_t kc) {
       c -= MOD_JOY2;
     }
 
-    // Shift Lock keeps the matrix closed, but physical releases still
-    // need to clear their entry in keyStateTable.
-    if (!kpress && c == KEY_LSHIFT && (shiftlock || virtshift)) return;
-
-    // Differential shift conversion
-    if (c & MOD_SHIFT ) {
-      c -= MOD_SHIFT;
-      if (kpress) {
-        // setup shift key state if this is key press
-        if (lshift || rshift || shiftlock || virtshift) { // if any of the shifts is active right now
-          setswitch(KEY_RSHIFT,LOW); // disable all of them
-          setswitch(KEY_LSHIFT,LOW);
-        } else {
-          setswitch(KEY_LSHIFT,HIGH); // if any of the shifts is inactive right now, enable left shift
-        }
-      } else {
-      // Restore shift states if this was key release
-        if (!kpress) {
-          setswitch(KEY_LSHIFT, lshift || shiftlock || virtshift);
-          setswitch(KEY_RSHIFT, rshift);
-        }
-      }
-    }
+    const bool updateShifts = c == KEY_LSHIFT || c == KEY_RSHIFT || (c & MOD_SHIFT);
+    c &= ~MOD_SHIFT;
 
     // Process normal keypress
-    if (c != IGNORE_KEYCODE){
+    if (c != KEY_LSHIFT && c != KEY_RSHIFT) {
       // Several USB keys can drive the same matrix switch (e.g. FIRE).
       bool held = false;
       for (const auto &entry : keyStateTable) {
@@ -250,6 +242,7 @@ void C128keyboard::c64key(uint16_t c, bool kpress, uint8_t kc) {
       }
       setswitch(c & 0xff, kpress || held);
     }
+    if (updateShifts) updateShiftSwitches();
 }
 
 
