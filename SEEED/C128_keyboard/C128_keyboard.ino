@@ -178,6 +178,11 @@ void keyReleased() {
 
 //////////////////////////////////////////////////////////////
 
+// Release momentary outputs when the USB device disappears without key-up reports.
+void keyDisconnected() {
+  ckey->clearAllKeys();
+}
+
 void displayKeyMap() {
   if (!displayPresent) { return; }
   u8g2.firstPage();

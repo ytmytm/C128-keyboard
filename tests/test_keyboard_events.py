@@ -33,6 +33,8 @@ header = read(FW / 'C128keyboard.h')
 classes = header[header.index('class C64KeyInfo'):header.rindex('#endif')]
 parser_header = read(SRC / 'hidboot.h')
 constructor = function(parser_header, 'KeyboardReportParser()')
+hid_header = read(SRC / 'hid.h')
+parser_interface = hid_header[hid_header.index('class HIDReportParser {'):hid_header.index('class HID :')]
 source = r'''
 #include <array>
 #include <cassert>
@@ -54,7 +56,8 @@ source = r'''
 #define bitRead(value, bit) (((value) >> (bit)) & 1U)
 using String = std::string;
 struct HID {};
-struct KeyboardReportParser {
+PARSER_INTERFACE
+struct KeyboardReportParser : HIDReportParser {
     struct { uint8_t bInfo[8]; } prevState;
     struct { uint8_t bLeds; } kbdLockingKeys;
     CONSTRUCTOR
@@ -65,15 +68,27 @@ struct KeyboardReportParser {
     uint8_t HandleLockingKeys(HID *, uint8_t) { return 0; }
     uint8_t OemToAscii(uint8_t, uint8_t) { return 0; }
 };
-struct USBHost {};
+struct USBHost {
+    struct AddressPool { void FreeAddress(uint32_t) {} } pool;
+    AddressPool &GetAddressPool() { return pool; }
+};
 #define HID_PROTOCOL_KEYBOARD 1
-template <uint8_t> struct HIDBoot {
-    explicit HIDBoot(USBHost *) {}
-    void SetReportParser(uint8_t, KeyboardReportParser *) {}
+#define HID_PROTOCOL_MOUSE 2
+#define epMUL(p) ((((p) & HID_PROTOCOL_KEYBOARD)? 1 : 0) + (((p) & HID_PROTOCOL_MOUSE)? 1 : 0))
+template <const uint8_t BOOT_PROTOCOL> struct HIDBoot {
+    USBHost *pUsb;
+    HIDReportParser *pRptParser[epMUL(BOOT_PROTOCOL)] = {};
+    uint32_t bConfNum = 0, bIfaceNum = 0, bNumEP = 1, bAddress = 0, qNextPollTime = 0;
+    bool bPollEnable = false;
+    explicit HIDBoot(USBHost *host) : pUsb(host) {}
+    void SetReportParser(uint8_t id, HIDReportParser *parser) { pRptParser[id] = parser; }
+    uint32_t Release();
 };
 void keyPressed();
 void keyReleased();
-'''.replace('CONSTRUCTOR', constructor)
+void keyDisconnected();
+'''.replace('CONSTRUCTOR', constructor).replace('PARSER_INTERFACE', parser_interface)
+source += '\ntemplate <const uint8_t BOOT_PROTOCOL>\n' + function(parser_header, 'uint32_t HIDBoot<BOOT_PROTOCOL>::Release(')
 # Compile the real controller declaration as well as its callback definitions.
 source += '\n' + read(SRC / 'KeyboardController.h').replace('#include <hidboot.h>', '')
 source += '\nUSBHost usb;\nKeyboardController keyboard(usb);\n'
@@ -108,7 +123,7 @@ void displayKeyMap() {}
 '''
 source += '\n' + function(read(SRC / 'hidboot.cpp'), 'void KeyboardReportParser::Parse(')
 controller = read(SRC / 'KeyboardController.cpp')
-for name in ('OnKeyDown', 'OnKeyUp', 'OnControlKeysChanged'):
+for name in ('OnKeyDown', 'OnKeyUp', 'OnControlKeysChanged', 'OnDisconnect'):
     source += '\n' + function(controller, 'void KeyboardController::' + name + '(')
 source += '\n' + function(firmware, 'constexpr uint8_t C128keyboard::getNumKeyMaps(')
 source += '\n' + function(firmware, 'const char* get_mapped_key_name(')
@@ -116,7 +131,7 @@ source += '\n' + function(firmware, 'void resetMT88(')
 source += '\n' + function(firmware, 'C128keyboard::C128keyboard(')
 for name in ('mapkeycode', 'updateShiftSwitches', 'c64key', 'clearAllKeys'):
     source += '\n' + function(firmware, ('uint16_t' if name == 'mapkeycode' else 'void') + ' C128keyboard::' + name + '(')
-for name in ('next_keymap', 'handle_c128_4080', 'handle_c128_caps', 'keyPressed', 'keyReleased'):
+for name in ('next_keymap', 'handle_c128_4080', 'handle_c128_caps', 'keyPressed', 'keyReleased', 'keyDisconnected'):
     source += '\n' + function(sketch, 'void ' + name + '(')
 source += '\n' + read(ROOT / 'tests/keyboard_events.cpp')
 with tempfile.TemporaryDirectory(prefix='c128-events-') as tmp:

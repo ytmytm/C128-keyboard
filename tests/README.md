@@ -15,7 +15,7 @@ Compile-time assertions also verify key lookup and modifier table sizes.
 The Python runner reads functions directly from the firmware and compiles them
 with the C++ scenarios in `keyboard_events.cpp`. It uses the real controller
 class declaration, parser constructor and Parse implementation, controller
-callbacks, key maps, matrix event handling, constructor, reset and key-action callbacks.
+callbacks, the HID device release path, key maps, matrix event handling, constructor, reset and key-action callbacks.
 Hardware I/O, USB transport, OLED output and ASCII conversion are mocked.
 Temporary build files are removed automatically, including on test failure.
 
@@ -36,6 +36,10 @@ Tests cover:
 - Reset, keymap switching and wrapping, momentary RESTORE, toggled 40/80 and
   CAPS pins (including reset), shared RESTORE sources, valid GPIO pin numbers,
   duplicate presses and unmatched releases.
+- RESTORE versus DEL isolation and exact Shift/key write ordering.
+- Disconnect with held modifiers, normal keys, FIRE, RESTORE and Shift Lock;
+  reconnect with the same keys held; repeated releases and interfaces without
+  a parser. The real HIDBoot release callback path is used with mocked USB I/O.
 
 The transition count is a count of exercised cases, not a source coverage
 percentage. These tests do not build the full Arduino sketch or verify

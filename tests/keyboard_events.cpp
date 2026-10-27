@@ -484,6 +484,45 @@ int main() {
     }
     keymapnum = 0;
 
+    // Exercise the real HIDBoot::Release -> controller -> application callback path.
+    HIDBoot<HID_PROTOCOL_KEYBOARD> transport(&usb);
+    transport.SetReportParser(0, &keyboard);
+    report(0, {0x47}); // enable Shift Lock before unplugging
+    report(0);
+    joymode = true;
+    joynum = 2;
+    report(0x53, {4, 0x5d, 0x4b}); // Ctrl/C=, Shift, two FIRE and two RESTORE sources
+    assert(shiftlock && lshift && matrix[KEY_CBM] && matrix[KEY_A]);
+    assert(matrix[JOY2_FIRE] && matrix[JOY2_ROUTE_GND] && joykeycount == 2);
+    assert(pins[NMI_PIN]);
+    transport.bPollEnable = true;
+    transport.Release();
+    assert(!shiftlock && !virtshift && !pins[NMI_PIN]);
+    assert(keyboard.getModifiers() == 0 && keyboard.getOemKey() == 0 && keyboard.getKey() == 0);
+    clean();
+    const auto writesAfterDisconnect = matrixWrites;
+    transport.Release(); // releasing an inactive device must not notify twice
+    assert(matrixWrites == writesAfterDisconnect);
+    // Reconnect with precisely the same held keys: the parser must see new presses.
+    transport.bPollEnable = true;
+    report(0x53, {4, 0x5d, 0x4b});
+    assert(lshift && matrix[KEY_CBM] && matrix[KEY_A] && pins[NMI_PIN]);
+    assert(matrix[JOY2_FIRE] && joykeycount == 2);
+    transport.Release();
+    clean();
+    report(0); // an empty first report after reconnect must not create releases
+    clean();
+    joymode = false;
+    report(1);
+    transport.Release(); // failed initialization of an inactive transport is harmless
+    assert(matrix[KEY_CBM]);
+    report(0);
+    clean();
+    HIDBoot<HID_PROTOCOL_KEYBOARD> noParser(&usb);
+    noParser.bPollEnable = true;
+    noParser.Release(); // an interface without a parser is also safe
+    std::cout << "PASS: disconnect cleanup, parser reset, reconnect and inactive transports\n";
+
     std::cout << "PASS: six slots, invalid reports, differential Shift, directions, reset, keymap and control pins\n";
     std::cout << "PASS: modifier orders, simultaneous changes, both Shifts, typing, all keymaps, slots, repeated reports, errors, Shift Lock, joystick FIRE and saved releases\n";
 }

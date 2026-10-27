@@ -219,6 +219,8 @@ void C128keyboard::clearAllKeys(void) {
   joykeycount = 0;
   lshift = false;
   rshift = false;
+  shiftlock = false;
+  virtshift = false;
   // MT88xx RESET substitute, just go through all the switches in the matrix and clear them
   for (uint8_t c=0;c<128;c++) { // we have 7 address bits only (AX0..3, AY0..2)
     setswitch(c,LOW);

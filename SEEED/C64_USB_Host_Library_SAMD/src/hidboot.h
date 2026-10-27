@@ -549,6 +549,12 @@ void HIDBoot<BOOT_PROTOCOL>::EndpointXtract(uint32_t conf, uint32_t iface, uint3
 
 template <const uint8_t BOOT_PROTOCOL>
 uint32_t HIDBoot<BOOT_PROTOCOL>::Release() {
+    if (bPollEnable) {
+        bPollEnable = false;
+        for (uint8_t i = 0; i < epMUL(BOOT_PROTOCOL); ++i) {
+            if (pRptParser[i]) pRptParser[i]->OnDisconnect();
+        }
+    }
 	pUsb->GetAddressPool().FreeAddress(bAddress);
 
 	bConfNum			= 0;

@@ -137,6 +137,8 @@ class HID;
 
 class HIDReportParser {
 public:
+    // Called when an active HID device is released, including behind a hub.
+    virtual void OnDisconnect() {}
 	virtual void Parse(HID *hid, uint32_t is_rpt_id, uint32_t len, uint8_t *buf)= 0;
 };
 
