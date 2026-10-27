@@ -124,41 +124,42 @@ void MouseReportParser::Parse(HID * /* hid */, uint32_t /* is_rpt_id */, uint32_
 
 };
 
-void KeyboardReportParser::Parse(HID *hid, uint32_t /* is_rpt_id */, uint32_t /* len */, uint8_t *buf) {
-	// On error - return
-	//if (buf[2] == 1)
-		//return;
+void KeyboardReportParser::Parse(HID *hid, uint32_t /* is_rpt_id */, uint32_t len, uint8_t *buf) {
+    if (len < sizeof(prevState.bInfo)) return;
 
-	//KBDINFO	*pki = (KBDINFO*)buf;
+    // Error usages do not describe a valid set of held keys.
+    for (uint8_t i = 2; i < 8; i++) {
+        if (buf[i] >= 1 && buf[i] <= 3) return;
+    }
 
-	// provide event for changed control key state
-	if (prevState.bInfo[0x00] != buf[0x00]) {
-		OnControlKeysChanged(prevState.bInfo[0x00], buf[0x00]);
-		//buf[7] = buf [0] + 0xDD;
-	}
+    if (prevState.bInfo[0] != buf[0]) {
+        OnControlKeysChanged(prevState.bInfo[0], buf[0]);
+    }
 
-	for (uint32_t i = 0; i < 8; i++) {
-		bool down = false;
-		bool up	  = false;
-
-		for (uint8_t j = 0; j < 8; j++) {
-			if (buf[i] == prevState.bInfo[j] && buf[i] != 1)
-				down = true;
-			if (buf[j] == prevState.bInfo[i] && prevState.bInfo[i] != 1)
-				up = true;
-		}
-		if (!down) {
-			HandleLockingKeys(hid, buf[i]);
-			OnKeyDown(buf[0], buf[i]);			 
-			//OnKeyDown(*buf, buf[i]);
-		}
-		if (!up){
-			//OnKeyUp(prevState.bInfo[0], prevState.bInfo[i]);
-			OnKeyUp(buf[0], prevState.bInfo[i]);
-		}
-	}
-	for(uint32_t i = 0; i < 8; i++)
-		prevState.bInfo[i] = buf[i];
+    // Bytes 0 and 1 are modifiers and reserved, not key usages.
+    // Release old keys before pressing new ones; slot order is irrelevant.
+    for (uint8_t i = 2; i < 8; i++) {
+        const uint8_t key = prevState.bInfo[i];
+        if (!key) continue;
+        bool held = false;
+        for (uint8_t j = 2; j < 8; j++) {
+            if (buf[j] == key) held = true;
+        }
+        if (!held) OnKeyUp(buf[0], key);
+    }
+    for (uint8_t i = 2; i < 8; i++) {
+        const uint8_t key = buf[i];
+        if (!key) continue;
+        bool held = false;
+        for (uint8_t j = 2; j < 8; j++) {
+            if (prevState.bInfo[j] == key) held = true;
+        }
+        if (!held) {
+            HandleLockingKeys(hid, key);
+            OnKeyDown(buf[0], key);
+        }
+    }
+    for (uint8_t i = 0; i < 8; i++) prevState.bInfo[i] = buf[i];
 };
 
 uint8_t KeyboardReportParser::HandleLockingKeys(HID *hid, uint8_t key) {

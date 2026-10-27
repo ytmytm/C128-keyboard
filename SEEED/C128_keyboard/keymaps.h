@@ -732,13 +732,4 @@ constexpr static C64KeyMap keymaps[] = {
 
 constexpr static uint8_t nkeymaps = sizeof(keymaps) / sizeof(keymaps[0]);
 
-/* These are not passed from driver
-    ,KEY_CTRL           // 0xe0 Keyboard Left Control
-    ,KEY_LSHIFT         // 0xe1 Keyboard Left Shift
-    ,C128_KEY_ALT       // 0xe2 Keyboard Left Alt
-    ,KEY_CBM            // 0xe3 Keyboard Left GUI
-    ,KEY_CTRL           // 0xe4 Keyboard Right Control
-    ,KEY_RSHIFT         // 0xe5 Keyboard Right Shift
-    ,KEY_ALT            // 0xe6 Keyboard Right Alt
-    ,KEY_CBM            // 0xe7 Keyboard Right GUI
-*/
+// USB modifier usages 0xe0..0xe7 are translated through each map's mods array.

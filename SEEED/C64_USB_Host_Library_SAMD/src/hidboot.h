@@ -150,6 +150,7 @@ public:
 
         KeyboardReportParser() {
                 kbdLockingKeys.bLeds = 0;
+                for (uint8_t i = 0; i < sizeof(prevState.bInfo); i++) prevState.bInfo[i] = 0;
         };
 
 	virtual void Parse(HID *hid, uint32_t is_rpt_id, uint32_t len, uint8_t *buf);

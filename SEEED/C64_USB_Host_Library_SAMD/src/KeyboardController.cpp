@@ -38,3 +38,15 @@ void KeyboardController::OnKeyUp(uint8_t _mod, uint8_t _oemKey) {
 	key = OemToAscii(_mod, _oemKey);
 	keyReleased();
 }
+
+// Give each modifier a stable HID usage, independent of the other held bits.
+void KeyboardController::OnControlKeysChanged(uint8_t before, uint8_t after) {
+    for (uint8_t i = 0; i < 8; i++) {
+        const uint8_t mask = uint8_t(1U << i);
+        if ((before & mask) && !(after & mask)) OnKeyUp(after, 0xe0 + i);
+    }
+    for (uint8_t i = 0; i < 8; i++) {
+        const uint8_t mask = uint8_t(1U << i);
+        if (!(before & mask) && (after & mask)) OnKeyDown(after, 0xe0 + i);
+    }
+}

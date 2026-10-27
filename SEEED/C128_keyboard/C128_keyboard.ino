@@ -39,7 +39,7 @@ KeyboardController keyboard(usb);
 
 
 C128keyboard *ckey;
-static volatile uint8_t kc, mod, modbuff;
+static volatile uint8_t kc, mod;
 static volatile uint16_t kc_mapped;
 static volatile uint8_t keymapnum = 0; // current keymap number
 
@@ -127,7 +127,7 @@ void keyPressed() {
       break;
     case KEY_SHIFT_LOCK:
       shiftlock = !shiftlock;
-      ckey->c64key(KEY_LSHIFT, shiftlock, kc);
+      setswitch(KEY_LSHIFT, lshift || shiftlock || virtshift);
       if (shiftlock) {
         displayState("shift lock on");
       } else {
@@ -148,13 +148,11 @@ void keyPressed() {
       break;
     case KEY_JOY1_MODE:
       joymode = !joymode;
-      joykeycount = 0;
       joynum = 1;
       handle_joymode();
       break;
     case KEY_JOY2_MODE:
       joymode = !joymode;
-      joykeycount = 0;
       joynum = 2;
       handle_joymode();
       break;
@@ -173,17 +171,10 @@ void keyReleased() {
   kc_mapped = ckey->mapkeycode(kc,mod);
   displayKey();
 
-  // handle special key functions
-  switch (kc_mapped) {
-    case IGNORE_KEYCODE:
-      break;
-    case KEY_RESTORE:
-      digitalWrite (NMI_PIN, LOW);
-      break;
-    default:
-      ckey->c64key(kc_mapped, kpress, kc);
-      break;
-  }
+  // Restore is a separate output. Matrix keys release their saved mapping,
+  // even if the current map now translates this usage to a special action.
+  if (kc_mapped == KEY_RESTORE) digitalWrite(NMI_PIN, LOW);
+  ckey->c64key(kc_mapped, kpress, kc);
 }
 
 //////////////////////////////////////////////////////////////

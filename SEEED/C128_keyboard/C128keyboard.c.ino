@@ -52,7 +52,6 @@ void resetMT88(void) {
   virtshift = false;
 
   keymapnum = 0;
-  modbuff = 0;
   joymode = false;
   joynum = 2;
   joykeycount = 0;
@@ -112,17 +111,16 @@ const char* get_mapped_key_name(auto keycode) {
 // This map will store the original keycode for each pressed key
 std::map<uint8_t, uint16_t> keyStateTable;
 
-constexpr const uint8_t C128keyboard::getNumKeyMaps(void) { return nkeymaps; };
+constexpr uint8_t C128keyboard::getNumKeyMaps(void) { return nkeymaps; };
 
 const char* C128keyboard::getCurrentKeyMapName(void) { return keymaps[keymapnum].getName(); };
 
-uint16_t C128keyboard::mapkeycode(uint8_t kc, uint8_t mod) {
+uint16_t C128keyboard::mapkeycode(uint8_t kc, uint8_t /* mod */) {
 
     if (joymode && joynum==1) {
       // in joystick mode map numpad 4/6/2/8 to directions and 5/numpad 0/right control to FIRE
       // pass through to current keymap for any other key
-      if (bitRead(mod,4) != bitRead(modbuff,4)) { // bit 4 / 0x10 is right CTRL
-        modbuff = mod;
+      if (kc == 0xe4) { // right CTRL
         return JOY1_FIRE;
       }
       switch(kc) {
@@ -150,8 +148,7 @@ uint16_t C128keyboard::mapkeycode(uint8_t kc, uint8_t mod) {
     if (joymode && joynum==2) {
       // in joystick mode map numpad 4/6/2/8 to directions and 5/numpad 0/right control to FIRE
       // pass through to current keymap for any other key
-      if (bitRead(mod,4) != bitRead(modbuff,4)) { // bit 4 / 0x10 is right CTRL
-        modbuff = mod;
+      if (kc == 0xe4) { // right CTRL
         return JOY2_FIRE | MOD_JOY2;
       }
       switch(kc) {
@@ -176,17 +173,9 @@ uint16_t C128keyboard::mapkeycode(uint8_t kc, uint8_t mod) {
       }
     }
 
-    // handle modifier keys
-    if (mod != modbuff) {
-      uint16_t c;
-      auto MODKEYS = keymaps[keymapnum].getMods();
-      for (uint8_t i=0;i<8; i++) {
-        if (bitRead(modbuff,i) != bitRead(mod,i)) {
-          c = MODKEYS[i];
-          modbuff = mod;
-          return c;
-        }
-      }
+    // Modifiers arrive as individual HID usages, just like normal keys.
+    if (kc >= 0xe0 && kc <= 0xe7) {
+      return keymaps[keymapnum].getMods()[kc - 0xe0];
     }
 
     // scan for any other key
@@ -196,45 +185,30 @@ uint16_t C128keyboard::mapkeycode(uint8_t kc, uint8_t mod) {
 
 void C128keyboard::c64key(uint16_t c, bool kpress, uint8_t kc) {
 
-    // return early
-    if (c == IGNORE_KEYCODE) return;
+    // Resolve releases before any side effects: the active keymap or
+    // joystick mode may have changed since this physical key was pressed.
+    if (kpress) {
+        if (c == IGNORE_KEYCODE || keyStateTable.count(kc)) return;
+        keyStateTable[kc] = c;
+    } else {
+        auto it = keyStateTable.find(kc);
+        if (it == keyStateTable.end()) return;
+        c = it->second;
+        keyStateTable.erase(it);
+    }
 
-    // update shift states
     if (c == KEY_LSHIFT) lshift = kpress;
     if (c == KEY_RSHIFT) rshift = kpress;
 
-    // lshift key release can be ignored if shiftlock/virtual shift are still on
-    if (!kpress && c == KEY_LSHIFT && (shiftlock || virtshift)) {
-      return;
-    }
-
     if (c & MOD_JOY2) {
+      if (kpress) { joykeycount++; } else if (joykeycount) { joykeycount--; }
+      setswitch(JOY2_ROUTE_GND, joykeycount != 0);
       c -= MOD_JOY2;
-      // change count
-      if (kpress) { joykeycount++; } else { joykeycount--; };
-      if ((kpress && joykeycount==1) || (!kpress && joykeycount==0)) {
-        // add/remove route between X11 and Y6/Y7
-        // only after first press or after last release
-        setswitch(JOY2_ROUTE_GND, kpress);
-      }
     }
 
-    if (kpress) {
-        // Map keycode and store in key state table
-        keyStateTable[kc] = c;
-    } else {
-        // Key release event
-        // Retrieve keycode from key state table
-        // Retrieve the stored keycode
-        auto it = keyStateTable.find(kc);
-        if (it != keyStateTable.end()) {
-            c = it->second;
-            keyStateTable.erase(it);  // Remove the key from the state table
-        } else {
-            // If the key wasn't found, ignore the release event
-            return;
-        }
-    }
+    // Shift Lock keeps the matrix closed, but physical releases still
+    // need to clear their entry in keyStateTable.
+    if (!kpress && c == KEY_LSHIFT && (shiftlock || virtshift)) return;
 
     // Differential shift conversion
     if (c & MOD_SHIFT ) {
@@ -258,12 +232,21 @@ void C128keyboard::c64key(uint16_t c, bool kpress, uint8_t kc) {
 
     // Process normal keypress
     if (c != IGNORE_KEYCODE){
-      setswitch(c & 0xff,kpress);
+      // Several USB keys can drive the same matrix switch (e.g. FIRE).
+      bool held = false;
+      for (const auto &entry : keyStateTable) {
+        if ((entry.second & 0xff) == (c & 0xff)) held = true;
+      }
+      setswitch(c & 0xff, kpress || held);
     }
 }
 
 
 void C128keyboard::clearAllKeys(void) {
+  keyStateTable.clear();
+  joykeycount = 0;
+  lshift = false;
+  rshift = false;
   // MT88xx RESET substitute, just go through all the switches in the matrix and clear them
   for (uint8_t c=0;c<128;c++) { // we have 7 address bits only (AX0..3, AY0..2)
     setswitch(c,LOW);
