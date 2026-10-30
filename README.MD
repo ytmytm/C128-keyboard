@@ -106,6 +106,28 @@ Use Arduino IDE to compile and flash sketch from [SEEED/C128_keyboard/C128_keybo
 
 * SEEED XIAO will need its board driver installed into the Arduino IDE. See manufacturers instructions.
 
+To force compilation with the USB library from this checkout, run Arduino CLI
+from the repository root:
+
+```sh
+arduino-cli compile \
+  --fqbn Seeeduino:samd:seeed_XIAO_m0 \
+  --library "$PWD/SEEED/C64_USB_Host_Library_SAMD" \
+  SEEED/C128_keyboard
+```
+
+The explicit [`--library` option](https://arduino.github.io/arduino-cli/1.5/sketch-build-process/#dependency-resolution)
+has priority over libraries installed in the sketchbook. No ZIP installation is
+needed for this build. The Seeed SAMD board package and the other dependencies
+(U8g2 and ShiftRegister74HC595) must still be installed for Arduino CLI.
+
+When using the Arduino IDE GUI, an alternative is to replace the installed
+`C64_USB_Host_Library_SAMD` directory with a symbolic link to this checkout's
+`SEEED/C64_USB_Host_Library_SAMD`. Move the old copy outside the sketchbook's
+`libraries` directory, restart the IDE, and verify the selected library path
+in verbose compilation output. Pulling changes into the checkout then also
+updates the library used by the IDE.
+
 # Keyboard mapping
 
 Key maps are defined in [SEEED/C128_keyboard/keymaps.h](SEEED/C128_keyboard/keymaps.h). You can modify existing ones or add your own.
