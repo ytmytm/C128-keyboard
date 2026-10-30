@@ -91,6 +91,18 @@ class C128keyboard {
     void updateShiftSwitches(void);
     constexpr uint8_t getNumKeyMaps(void);
     const char* getCurrentKeyMapName(void);
+  private:
+    // A saved mapping can drive one matrix switch or a joystick diagonal.
+    // Actions such as RESTORE must never alias a physical matrix address.
+    static constexpr std::array<uint8_t, 2> getMatrixSwitches(uint16_t mapped) {
+      const uint16_t primary = mapped & ~(MOD_SHIFT | MOD_JOY2 | MOD_JOY_UP | MOD_JOY_DOWN);
+      if (primary >= 128) return {{0xff, 0xff}};
+      const bool port2 = mapped & MOD_JOY2;
+      uint8_t vertical = 0xff;
+      if (mapped & MOD_JOY_UP) vertical = port2 ? JOY2_UP : JOY1_UP;
+      else if (mapped & MOD_JOY_DOWN) vertical = port2 ? JOY2_DOWN : JOY1_DOWN;
+      return {{static_cast<uint8_t>(primary), vertical}};
+    }
 };
 
 class C64Key {

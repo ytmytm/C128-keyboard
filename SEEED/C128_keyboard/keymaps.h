@@ -98,6 +98,10 @@ constexpr static C64KeyInfo key_infos[] = {
   ,{ JOY1_LEFT, "joy#1 LEFT" }
   ,{ JOY1_RIGHT, "joy#1 RIGHT" }
   ,{ JOY1_FIRE, "joy#1 FIRE" }
+  ,{ JOY1_LEFT  | MOD_JOY_DOWN, "joy#1 DOWN LEFT" }
+  ,{ JOY1_RIGHT | MOD_JOY_DOWN, "joy#1 DOWN RIGHT" }
+  ,{ JOY1_LEFT  | MOD_JOY_UP, "joy#1 UP LEFT" }
+  ,{ JOY1_RIGHT | MOD_JOY_UP, "joy#1 UP RIGHT" }
   /*
   ,{ JOY2_UP, "joy#2 UP" }
   ,{ JOY2_DOWN, "joy#2 DOWN" }
@@ -110,6 +114,10 @@ constexpr static C64KeyInfo key_infos[] = {
   ,{ JOY2_LEFT | MOD_JOY2, "joy#2 LEFT" }
   ,{ JOY2_RIGHT | MOD_JOY2, "joy#2 RIGHT" }
   ,{ JOY2_FIRE | MOD_JOY2, "joy#2 FIRE" }
+  ,{ JOY2_LEFT  | MOD_JOY_DOWN | MOD_JOY2, "joy#2 DOWN LEFT" }
+  ,{ JOY2_RIGHT | MOD_JOY_DOWN | MOD_JOY2, "joy#2 DOWN RIGHT" }
+  ,{ JOY2_LEFT  | MOD_JOY_UP | MOD_JOY2, "joy#2 UP LEFT" }
+  ,{ JOY2_RIGHT | MOD_JOY_UP | MOD_JOY2, "joy#2 UP RIGHT" }
   ,{ MOD_SHIFT, "virtual SHIFT" }
   ,{ KEY_RESTORE, "RESTORE" }
   ,{ KEY_KEYMAP, "switch keymap" }

@@ -40,7 +40,10 @@ Tests cover:
   report lengths from zero to seven bytes.
 - Differential Shift in symbolic mappings and synthesized Shift for cursor
   and function keys; overlapping differential keys and Shift Lock with physical Shift.
-- Both joystick ports, all directions, diagonals, three FIRE inputs, shared
+- Both joystick ports, all four single-key keypad diagonals in every keymap,
+  equivalence to two cardinal keys, 224 overlapping-direction release cases,
+  six keypad slots plus right Ctrl, mode changes, OLED labels, diagonals with
+  FIRE and Shift, all cardinal directions, three FIRE inputs, shared
   FIRE releases, route/count lifetime, and entering/leaving modes while held.
 - Saved releases after changing a mapping to another key, IGNORE or an action.
 - Reset, keymap switching and wrapping, momentary RESTORE, toggled 40/80 and

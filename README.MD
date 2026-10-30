@@ -195,4 +195,22 @@ Same as C128 symbolic, except that numpad keys are mapped to 1-0 keys above QWER
 
 Joystick mode is toggled when you hit NumLock (with or without SHIFT). When NumLock LED is ON then joystick mode is enabled.
 
+The keypad directions are the same for both joystick ports:
+
+| Keypad key | Direction |
+| --- | --- |
+| 7 | up + left |
+| 8 | up |
+| 9 | up + right |
+| 4 | left |
+| 6 | right |
+| 1 | down + left |
+| 2 | down |
+| 3 | down + right |
+| 5, 0, right Ctrl | FIRE |
+
+A diagonal key is equivalent to holding its two direction keys together.
+Directions stay active while another held key still requires them, for example
+releasing keypad 1 while holding keypad 4 leaves LEFT active.
+
 Note that it's not supposed to replace your regular joysticks - joystick #2 actions may be interpreted by some games as keypresses.

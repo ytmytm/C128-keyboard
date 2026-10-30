@@ -118,14 +118,18 @@ uint16_t C128keyboard::mapkeycode(uint8_t kc) {
     if (joymode && (joynum == 1 || joynum == 2)) {
       struct JoystickKey {
         uint8_t usage;
-        uint8_t port1;
-        uint8_t port2;
+        uint16_t port1;
+        uint16_t port2;
       };
-      static constexpr std::array<JoystickKey, 7> joystickKeys = {{
+      static constexpr std::array<JoystickKey, 11> joystickKeys = {{
         {0x60, JOY1_UP,    JOY2_UP},    // keypad 8
         {0x5a, JOY1_DOWN,  JOY2_DOWN},  // keypad 2
         {0x5c, JOY1_LEFT,  JOY2_LEFT},  // keypad 4
         {0x5e, JOY1_RIGHT, JOY2_RIGHT}, // keypad 6
+        {0x59, JOY1_LEFT  | MOD_JOY_DOWN, JOY2_LEFT  | MOD_JOY_DOWN}, // keypad 1
+        {0x5b, JOY1_RIGHT | MOD_JOY_DOWN, JOY2_RIGHT | MOD_JOY_DOWN}, // keypad 3
+        {0x5f, JOY1_LEFT  | MOD_JOY_UP,   JOY2_LEFT  | MOD_JOY_UP},   // keypad 7
+        {0x61, JOY1_RIGHT | MOD_JOY_UP,   JOY2_RIGHT | MOD_JOY_UP},   // keypad 9
         {0x5d, JOY1_FIRE,  JOY2_FIRE},  // keypad 5
         {0x62, JOY1_FIRE,  JOY2_FIRE},  // keypad 0
         {0xe4, JOY1_FIRE,  JOY2_FIRE},  // right Ctrl
@@ -185,6 +189,7 @@ void C128keyboard::c64key(uint16_t c, bool kpress, uint8_t kc) {
       return;
     }
 
+    const auto switches = getMatrixSwitches(c);
     if (c == KEY_LSHIFT) lshift = kpress;
     if (c == KEY_RSHIFT) rshift = kpress;
 
@@ -195,19 +200,19 @@ void C128keyboard::c64key(uint16_t c, bool kpress, uint8_t kc) {
     }
 
     const bool updateShifts = c == KEY_LSHIFT || c == KEY_RSHIFT || (c & MOD_SHIFT);
-    c &= ~MOD_SHIFT;
 
     // Establish Shift before closing a key; release a key before restoring Shift.
     if (updateShifts && kpress) updateShiftSwitches();
 
-    // Process normal keypress
-    if (c != KEY_LSHIFT && c != KEY_RSHIFT) {
-      // Several USB keys can drive the same matrix switch (e.g. FIRE).
+    // Keep every component active while any saved mapping still needs it.
+    for (const auto target : switches) {
+      if (target >= 128 || target == KEY_LSHIFT || target == KEY_RSHIFT) continue;
       bool held = false;
       for (const auto &entry : keyStateTable) {
-        if (entry.second < KEY_RESTORE && (entry.second & 0xff) == (c & 0xff)) held = true;
+        const auto active = getMatrixSwitches(entry.second);
+        if (active[0] == target || active[1] == target) held = true;
       }
-      setswitch(c & 0xff, kpress || held);
+      setswitch(target, kpress || held);
     }
     if (updateShifts && !kpress) updateShiftSwitches();
 }

@@ -11,6 +11,12 @@ void clean() {
     assert(joykeycount == 0);
     for (const auto &entry : matrix) assert(!entry.second);
 }
+std::vector<uint8_t> activeSwitches() {
+    std::vector<uint8_t> active;
+    for (const auto &entry : matrix) if (entry.second) active.push_back(entry.first);
+    return active;
+}
+
 int main() {
     C128keyboard instance;
     ckey = &instance;
@@ -352,6 +358,150 @@ int main() {
     }
     joynum = 2;
 
+    // Each diagonal must produce exactly the same switches as its two cardinal keys.
+    const uint8_t diagonalUsages[] = {0x59, 0x5b, 0x5f, 0x61}; // keypad 1,3,7,9
+    const uint8_t horizontalUsages[] = {0x5c, 0x5e, 0x5c, 0x5e};
+    const uint8_t verticalUsages[] = {0x5a, 0x5a, 0x60, 0x60};
+    const uint8_t horizontalTargets[2][4] = {
+        {JOY1_LEFT, JOY1_RIGHT, JOY1_LEFT, JOY1_RIGHT},
+        {JOY2_LEFT, JOY2_RIGHT, JOY2_LEFT, JOY2_RIGHT}
+    };
+    const uint8_t verticalTargets[2][4] = {
+        {JOY1_DOWN, JOY1_DOWN, JOY1_UP, JOY1_UP},
+        {JOY2_DOWN, JOY2_DOWN, JOY2_UP, JOY2_UP}
+    };
+    unsigned diagonalCases = 0;
+    for (keymapnum = 0; keymapnum < nkeymaps; ++keymapnum) {
+        for (uint8_t port = 1; port <= 2; ++port) {
+            joynum = port;
+            joymode = true;
+            for (unsigned i = 0; i < 4; ++i) {
+                const auto usage = diagonalUsages[i];
+                const auto horizontal = horizontalTargets[port - 1][i];
+                const auto vertical = verticalTargets[port - 1][i];
+                report(0, {horizontalUsages[i], verticalUsages[i]});
+                const auto expected = activeSwitches();
+                assert(joykeycount == (port == 2 ? 2 : 0));
+                report(0);
+                clean();
+                report(0, {usage});
+                assert(activeSwitches() == expected);
+                assert(keyStateTable.size() == 1);
+                const char *directionNames[] = {"DOWN LEFT", "DOWN RIGHT", "UP LEFT", "UP RIGHT"};
+                const auto label = "joy#" + std::to_string(port) + " " + directionNames[i];
+                assert(std::string(get_mapped_key_name(keyStateTable.at(usage))) == label);
+                assert(matrix[horizontal] && matrix[vertical]);
+                assert(joykeycount == (port == 2 ? 1 : 0));
+                report(0);
+                clean();
+
+                // Either component can also be held by its own physical key.
+                for (bool useHorizontal : {false, true}) {
+                    const auto component = useHorizontal ? horizontalUsages[i] : verticalUsages[i];
+                    const auto target = useHorizontal ? horizontal : vertical;
+                    const auto other = useHorizontal ? vertical : horizontal;
+                    for (bool diagonalReleasedFirst : {false, true}) {
+                        report(0, {usage, component});
+                        assert(activeSwitches() == expected);
+                        assert(joykeycount == (port == 2 ? 2 : 0));
+                        if (diagonalReleasedFirst) {
+                            report(0, {component});
+                            assert(matrix[target] && !matrix[other]);
+                        } else {
+                            report(0, {usage});
+                            assert(activeSwitches() == expected);
+                        }
+                        assert(joykeycount == (port == 2 ? 1 : 0));
+                        report(0);
+                        clean();
+                        ++diagonalCases;
+                    }
+                }
+                // Changing modes/ports must release the saved original two outputs.
+                report(0, {usage});
+                joymode = false;
+                joynum = port == 1 ? 2 : 1;
+                report(0);
+                clean();
+                joynum = port;
+                joymode = true;
+                report(0, {usage});
+                joynum = port == 1 ? 2 : 1;
+                report(0);
+                clean();
+                joynum = port;
+
+                // Diagonal plus two FIRE sources: route stays active until the last input.
+                report(0x10, {usage, 0x5d});
+                assert(matrix[horizontal] && matrix[vertical]);
+                assert(matrix[port == 1 ? JOY1_FIRE : JOY2_FIRE]);
+                assert(joykeycount == (port == 2 ? 3 : 0));
+                report(0, {usage});
+                assert(!matrix[port == 1 ? JOY1_FIRE : JOY2_FIRE]);
+                assert(activeSwitches() == expected);
+                assert(joykeycount == (port == 2 ? 1 : 0));
+                report(0);
+                clean();
+                for (uint8_t shift : {2, 32}) {
+                    report(shift, {usage});
+                    assert(matrix[horizontal] && matrix[vertical]);
+                    assert(matrix[shift == 2 ? KEY_LSHIFT : KEY_RSHIFT]);
+                    report(0);
+                    clean();
+                }
+            }
+            // Every pair of diagonals, including shared axes and opposing directions.
+            for (unsigned first = 0; first < 4; ++first) {
+                for (unsigned second = first + 1; second < 4; ++second) {
+                    for (bool releaseFirst : {false, true}) {
+                        const auto remaining = releaseFirst ? second : first;
+                        report(0, {diagonalUsages[remaining]});
+                        const auto expectedRemaining = activeSwitches();
+                        report(0);
+                        clean();
+                        report(0, {diagonalUsages[first], diagonalUsages[second]});
+                        assert(matrix[horizontalTargets[port - 1][first]]);
+                        assert(matrix[horizontalTargets[port - 1][second]]);
+                        assert(matrix[verticalTargets[port - 1][first]]);
+                        assert(matrix[verticalTargets[port - 1][second]]);
+                        report(0, {diagonalUsages[remaining]});
+                        assert(activeSwitches() == expectedRemaining);
+                        assert(joykeycount == (port == 2 ? 1 : 0));
+                        report(0);
+                        clean();
+                        ++diagonalCases;
+                    }
+                }
+            }
+            // Six keypad slots plus Ctrl: four diagonals and three FIRE sources.
+            report(0x10, {0x59, 0x5b, 0x5f, 0x61, 0x5d, 0x62});
+            assert(joykeycount == (port == 2 ? 7 : 0));
+            assert(keyStateTable.size() == 7);
+            report(0, {0x59});
+            assert(matrix[horizontalTargets[port - 1][0]] && matrix[verticalTargets[port - 1][0]]);
+            assert(joykeycount == (port == 2 ? 1 : 0));
+            report(0);
+            clean();
+
+            // The same keypad keys retain keyboard behavior outside joystick mode.
+            joymode = false;
+            const uint8_t keypadTargets[] = {C128_KEYPAD_1, C128_KEYPAD_3, C128_KEYPAD_7, C128_KEYPAD_9};
+            const uint8_t digitTargets[] = {KEY_1, KEY_3, KEY_7, KEY_9};
+            for (unsigned i = 0; i < 4; ++i) {
+                report(0, {diagonalUsages[i]});
+                assert(matrix[keymapnum < 2 ? keypadTargets[i] : digitTargets[i]]);
+                assert(joykeycount == 0 && !matrix[JOY2_ROUTE_GND]);
+                report(0);
+                clean();
+            }
+        }
+    }
+    keymapnum = 0;
+    joynum = 2;
+    joymode = false;
+    std::cout << "PASS: keypad diagonals on both ports and all keymaps, including "
+              << diagonalCases << " shared-direction release cases\n";
+
     // Enter joystick mode with right Ctrl already held as a keyboard cursor.
     report(0x10);
     assert(matrix[C128_KEY_RIGHT]);
@@ -517,9 +667,9 @@ int main() {
     report(0);
     joymode = true;
     joynum = 2;
-    report(0x53, {4, 0x5d, 0x4b}); // Ctrl/C=, Shift, two FIRE and two RESTORE sources
+    report(0x53, {4, 0x5d, 0x4b, 0x59}); // Ctrl/C=, Shift, two FIRE and two RESTORE sources
     assert(shiftlock && lshift && matrix[KEY_CBM] && matrix[KEY_A]);
-    assert(matrix[JOY2_FIRE] && matrix[JOY2_ROUTE_GND] && joykeycount == 2);
+    assert(matrix[JOY2_FIRE] && matrix[JOY2_ROUTE_GND] && joykeycount == 3);
     assert(pins[NMI_PIN]);
     transport.bPollEnable = true;
     transport.Release();
@@ -531,9 +681,9 @@ int main() {
     assert(matrixWrites == writesAfterDisconnect);
     // Reconnect with precisely the same held keys: the parser must see new presses.
     transport.bPollEnable = true;
-    report(0x53, {4, 0x5d, 0x4b});
+    report(0x53, {4, 0x5d, 0x4b, 0x59});
     assert(lshift && matrix[KEY_CBM] && matrix[KEY_A] && pins[NMI_PIN]);
-    assert(matrix[JOY2_FIRE] && joykeycount == 2);
+    assert(matrix[JOY2_FIRE] && joykeycount == 3);
     transport.Release();
     clean();
     report(0); // an empty first report after reconnect must not create releases

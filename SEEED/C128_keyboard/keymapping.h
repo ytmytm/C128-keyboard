@@ -143,6 +143,9 @@ enum C128_Key {
   // modifiers
   ,MOD_SHIFT = 0x100        // virtual shift modifier (add shift on base map, remove shift on shifted map) (this is used as a bit modifier)
   ,MOD_JOY2 = 0x200         // switch JOY2_ROUTE_GND to connect Y7 to X11(GND) so that connections X0-4 to Y7 act as joystick #2
+  // Extra vertical direction combined with a horizontal switch for keypad diagonals.
+  ,MOD_JOY_UP = 0x800
+  ,MOD_JOY_DOWN = 0x1000
   // special actions
   ,KEY_RESTORE = 0x400      // special action: RESTORE (NMI)
   ,KEY_KEYMAP = 0x401       // special action: switch to next keymap
