@@ -21,6 +21,9 @@
 
 #include <hidboot.h>
 
+// The sketch depends on separate 0xe0..0xe7 modifier usages and disconnect callbacks.
+#define C128_USB_HOST_EVENT_API_VERSION 1
+
 enum KeyboardModifiers {
 	LeftCtrl = 1,
 	LeftShift = 2,

@@ -30,6 +30,10 @@
 
 #include <KeyboardController.h>
 
+#if !defined(C128_USB_HOST_EVENT_API_VERSION) || C128_USB_HOST_EVENT_API_VERSION < 1
+#error "Outdated USB host library: reinstall SEEED/C64_USB_Host_Library_SAMD.zip from this checkout in Arduino IDE."
+#endif
+
 
 // Initialize USB Controller
 USBHost usb;

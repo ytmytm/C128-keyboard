@@ -5,6 +5,7 @@ Requires Python 3 and g++; no Arduino libraries or connected board are needed.
 """
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -27,8 +28,17 @@ def function(source, signature):
     return source[start:end]
 
 
+subprocess.run([sys.executable, str(ROOT / 'tools/package_usb_library.py'), '--check'], check=True)
+
 firmware = read(FW / 'C128keyboard.c.ino')
 sketch = read(FW / 'C128_keyboard.ino')
+guard_start = sketch.index('#if !defined(C128_USB_HOST_EVENT_API_VERSION)')
+api_guard = sketch[guard_start:sketch.index('#endif', guard_start) + len('#endif')]
+for old_header in ('', '#define C128_USB_HOST_EVENT_API_VERSION 0\n'):
+    rejected = subprocess.run(['g++', '-E', '-x', 'c++', '-'], input=old_header + api_guard,
+                              text=True, capture_output=True)
+    assert rejected.returncode != 0 and 'Outdated USB host library' in rejected.stderr
+print('PASS: outdated USB library headers are rejected at compile time', flush=True)
 header = read(FW / 'C128keyboard.h')
 classes = header[header.index('class C64KeyInfo'):header.rindex('#endif')]
 parser_header = read(SRC / 'hidboot.h')
@@ -91,6 +101,7 @@ void keyDisconnected();
 source += '\ntemplate <const uint8_t BOOT_PROTOCOL>\n' + function(parser_header, 'uint32_t HIDBoot<BOOT_PROTOCOL>::Release(')
 # Compile the real controller declaration as well as its callback definitions.
 source += '\n' + read(SRC / 'KeyboardController.h').replace('#include <hidboot.h>', '')
+source += '\n' + api_guard + '\n'
 source += '\nUSBHost usb;\nKeyboardController keyboard(usb);\n'
 source += '\n' + read(FW / 'keymapping.h') + '\n' + classes
 source += '\n' + read(FW / 'keymaps.h')

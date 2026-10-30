@@ -24,6 +24,32 @@ int main() {
     assert(std::string(get_mapped_key_name(KEY_A | MOD_SHIFT)) == "A");
     assert(get_mapped_key_name(0xffff) == nullptr);
 
+    // Public event identity must distinguish a modifier mask from a HID usage.
+    // In particular Right Shift is usage E5, not usage 20 or ASCII space.
+    for (uint8_t bit = 0; bit < 8; ++bit) {
+        const uint8_t mask = uint8_t(1U << bit);
+        report(mask);
+        assert(keyboard.getModifiers() == mask);
+        assert(keyboard.getOemKey() == 0xe0 + bit);
+        assert(kc == 0xe0 + bit && mod == mask);
+        assert(!matrix[KEY_SPACE]);
+        report(0);
+        assert(keyboard.getModifiers() == 0 && keyboard.getOemKey() == 0xe0 + bit);
+        clean();
+    }
+    // Equal values are legitimate for a normal usage: Shift + HID usage 20 is Shift+3.
+    report(0x20, {0x20});
+    assert(kc == 0x20 && mod == 0x20);
+    assert(matrix[KEY_3] && matrix[KEY_RSHIFT] && !matrix[KEY_SPACE]);
+    report(0);
+    clean();
+    // Space has its own HID usage 2c, independent of ASCII 20 and modifier bits.
+    report(0x20, {0x2c});
+    assert(kc == 0x2c && mod == 0x20);
+    assert(matrix[KEY_SPACE] && matrix[KEY_RSHIFT]);
+    report(0);
+    clean();
+
     // Both press orders, both release orders, and simultaneous transitions.
     for (uint8_t shift : {2, 32}) {
         for (bool ctrlFirst : {false, true}) {

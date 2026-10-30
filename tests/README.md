@@ -19,8 +19,18 @@ callbacks, the HID device release path, key maps, matrix event handling, constru
 Hardware I/O, USB transport, OLED output and ASCII conversion are mocked.
 Temporary build files are removed automatically, including on test failure.
 
+The runner first verifies that the installable library ZIP matches the source
+folder and that the sketch rejects missing or outdated event API markers.
+After editing the USB library, refresh its ZIP before running tests:
+
+```sh
+python3 tools/package_usb_library.py
+```
+
 Tests cover:
 
+- Public modifier event usages `0xe0..0xe7` versus modifier masks, including
+  Right Shift, HID usage `0x20` (3) and HID usage `0x2c` (Space).
 - All 262,144 pairs of modifier masks across four keymaps, checking the expected
   matrix state, physical Shift flags and RESTORE pin after each transition.
 - Ctrl + either Shift in both press/release orders, simultaneous changes,
