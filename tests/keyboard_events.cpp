@@ -20,6 +20,23 @@ std::vector<uint8_t> activeSwitches() {
 int main() {
     C128keyboard instance;
     ckey = &instance;
+    // Startup USB messages include the release date on the second OLED line.
+    displayState("USB Configuring", true);
+    assert(u8g2.frames == 0); // an absent OLED must never be accessed
+    displayPresent = true;
+    displayState("USB Configuring", true);
+    assert(u8g2.lines[0] == "USB Configuring");
+    assert(u8g2.lines[1] == std::string("FW ") + firmwareVersion);
+    displayState("USB Running", true);
+    assert(u8g2.lines[0] == "USB Running");
+    assert(u8g2.lines[1] == std::string("FW ") + firmwareVersion);
+    displayState("NMI");
+    assert(u8g2.lines[0] == "NMI" && u8g2.lines[1].empty());
+    displayPresent = false;
+    const auto framesBeforeAbsentDisplay = u8g2.frames;
+    displayState("USB Configuring", true);
+    assert(u8g2.frames == framesBeforeAbsentDisplay);
+
     // Lookup is genuinely constexpr under C++14, including unknown usages.
     static_assert(C128_pos_keys[0].get() == IGNORE_KEYCODE, "reserved usage");
     static_assert(keymaps[0].getKey(4).get() == KEY_A, "constexpr key lookup");

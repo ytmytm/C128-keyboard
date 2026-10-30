@@ -101,6 +101,11 @@ Steps:
 
 Use Arduino IDE to compile and flash sketch from [SEEED/C128_keyboard/C128_keyboard.ino](SEEED/C128_keyboard/C128_keyboard.ino).
 
+The OLED shows the firmware release date below startup USB status messages,
+for example `USB Configuring` / `FW 2026-10-30`. Set the release date in
+[firmware_version.h](SEEED/C128_keyboard/firmware_version.h) when preparing a
+new firmware release; recompiling the same source does not change its version.
+
 * SEEED XIAO uses the modified [USB host library](SEEED/C64_USB_Host_Library_SAMD). Install the matching [ZIP](SEEED/C64_USB_Host_Library_SAMD.zip) using Arduino IDE's **Sketch > Include Library > Add .ZIP Library**, or replace the installed library with this directory. Updating the sketch also requires updating this library on the computer used for compilation. The sketch rejects older library headers at compile time.
 * If Arduino reports multiple libraries for `KeyboardController.h`, check the selected library path in the compilation log and remove or replace the outdated copy. Right Shift must arrive as HID usage `0xE5` with modifier mask `0x20`; use `getOemKey()` for HID usages, while `getKey()` returns ASCII.
 

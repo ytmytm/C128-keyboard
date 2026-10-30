@@ -105,6 +105,7 @@ source += '\n' + api_guard + '\n'
 source += '\nUSBHost usb;\nKeyboardController keyboard(usb);\n'
 source += '\n' + read(FW / 'keymapping.h') + '\n' + classes
 source += '\n' + read(FW / 'keymaps.h')
+source += '\n' + read(FW / 'firmware_version.h')
 source += r'''
 uint8_t kc = 0, mod = 0, keymapnum = 0, joynum = 2, joykeycount = 0;
 uint16_t kc_mapped = 0;
@@ -127,7 +128,22 @@ void digitalWrite(int pin, bool value) { assert(pin >= 0 && pin <= 10); pins[pin
 void pinMode(int pin, int) { assert(pin >= 0 && pin <= 10); }
 void delay(int) {}
 void displayKey() {}
-void displayState(const char *) {}
+bool displayPresent = false;
+constexpr uint8_t u8g2_font_7x13B_tr[] = {0};
+struct MockOled {
+    std::array<std::string, 2> lines;
+    unsigned currentLine = 0, frames = 0;
+    void firstPage() { lines = {{"", ""}}; ++frames; }
+    void setFlipMode(bool enabled) { assert(enabled); }
+    void setFont(const uint8_t *) {}
+    void setCursor(unsigned x, unsigned y) {
+        assert(x == 0 && (y == 14 || y == 31));
+        currentLine = y == 31 ? 1 : 0;
+    }
+    void print(const char *text) { lines[currentLine] += text; }
+    bool nextPage() { return false; }
+} u8g2;
+void displayState(const char *, bool = false);
 void handle_joymode() {}
 void displayKeyMap() {}
 
@@ -142,6 +158,7 @@ source += '\n' + function(firmware, 'void resetMT88(')
 source += '\n' + function(firmware, 'C128keyboard::C128keyboard(')
 for name in ('mapkeycode', 'updateShiftSwitches', 'c64key', 'clearAllKeys'):
     source += '\n' + function(firmware, ('uint16_t' if name == 'mapkeycode' else 'void') + ' C128keyboard::' + name + '(')
+source += '\n' + function(sketch, 'void displayState(const char* s, bool showVersion) {')
 for name in ('next_keymap', 'handle_c128_4080', 'handle_c128_caps', 'keyPressed', 'keyReleased', 'keyDisconnected'):
     source += '\n' + function(sketch, 'void ' + name + '(')
 source += '\n' + read(ROOT / 'tests/keyboard_events.cpp')

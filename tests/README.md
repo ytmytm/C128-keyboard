@@ -16,7 +16,8 @@ The Python runner reads functions directly from the firmware and compiles them
 with the C++ scenarios in `keyboard_events.cpp`. It uses the real controller
 class declaration, parser constructor and Parse implementation, controller
 callbacks, the HID device release path, key maps, matrix event handling, constructor, reset and key-action callbacks.
-Hardware I/O, USB transport, OLED output and ASCII conversion are mocked.
+Hardware I/O, USB transport, OLED drawing and ASCII conversion are mocked.
+The status renderer itself is compiled from the sketch.
 Temporary build files are removed automatically, including on test failure.
 
 The runner first verifies that the installable library ZIP matches the source
@@ -28,6 +29,9 @@ python3 tools/package_usb_library.py
 ```
 
 Tests cover:
+
+- Firmware date below startup USB status messages, ordinary one-line messages,
+  and skipping the renderer when no OLED is present.
 
 - Public modifier event usages `0xe0..0xe7` versus modifier masks, including
   Right Shift, HID usage `0x20` (3) and HID usage `0x2c` (Space).

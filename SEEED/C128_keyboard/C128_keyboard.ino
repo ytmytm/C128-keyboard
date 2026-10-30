@@ -26,6 +26,7 @@
 */
 
 #include "C128keyboard.h"
+#include "firmware_version.h"
 
 
 #include <KeyboardController.h>
@@ -69,6 +70,8 @@ bool displayPresent = false;
 #include <U8g2lib.h>
 
 U8G2_SSD1306_128X32_UNIVISION_1_HW_I2C u8g2(U8G2_R0);
+
+void displayState(const char* s, bool showVersion = false);
 
 //////////////////////////////////////////////////////////////
 
@@ -221,7 +224,7 @@ void displayKey() {
 }
 
 
-void displayState(const char* s) {
+void displayState(const char* s, bool showVersion) {
   if (!displayPresent) { return; }
   u8g2.firstPage();
   do {
@@ -229,6 +232,11 @@ void displayState(const char* s) {
    u8g2.setFont(u8g2_font_7x13B_tr);
    u8g2.setCursor(0,14);
    u8g2.print(s);
+   if (showVersion) {
+     u8g2.setCursor(0,31);
+     u8g2.print("FW ");
+     u8g2.print(firmwareVersion);
+   }
   } while ( u8g2.nextPage() );
 }
 
@@ -249,7 +257,7 @@ void setup() {
 
   usb.Init();
 
-  displayState("Hello world!");
+  displayState("Hello world!", true);
 
   ckey->clearAllKeys(); // just in case RESET line is not used
 }
@@ -279,7 +287,7 @@ void loop() {
       case USB_STATE_CONFIGURING: state="USB Configuring"; break;
       case USB_STATE_RUNNING: state="USB Running"; break;
     }
-    displayState(state.c_str());
+    displayState(state.c_str(), true);
     lastUSBstate = currentUSBstate;
   }
 }
