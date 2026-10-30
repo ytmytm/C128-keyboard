@@ -1,1 +1,7 @@
 kicad-c128keyb-backups
+
+# Generated firmware builds and CI converter checkout
+/build/
+/dist/
+/.ci/
+__pycache__/

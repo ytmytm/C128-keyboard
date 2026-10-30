@@ -4,6 +4,7 @@ Run from the repository root:
 
 ```sh
 python3 tests/test_keyboard_events.py
+python3 -m unittest discover -s tests -p 'test_firmware_artifacts.py' -v
 ```
 
 Requires Python 3 and GCC's g++ with AddressSanitizer and
@@ -71,3 +72,15 @@ must leave FIRE active until the other is also released.
 
 The old `C128-keyboard-issue-3-shift.patch` is an alternative workaround and
 must not be applied on top of the modifier event fix.
+
+# Firmware build and UF2 artifacts
+
+`test_firmware_artifacts.py` checks the release-date/tag contract and the
+application/UF2 validator. It rejects invalid vectors, wrong family IDs,
+bootloader addresses, incorrect block numbers, missing or reordered blocks,
+corrupt payloads and nonzero padding. It needs only Python 3.
+
+The [firmware workflow](../.github/workflows/firmware.yml) also performs a full
+Arduino build, converts the BIN with the pinned official Microsoft converter,
+and validates every UF2 payload byte before uploading build or release assets.
+This compile/format check complements the mocked event tests and hardware tests.

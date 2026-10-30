@@ -207,9 +207,13 @@ XIAO SAMD21**, no Arduino IDE is needed on the computer doing the upload:
 3. Wait for copying to finish. The board normally restarts automatically and
    the boot drive disappears. Reconnect the keyboard/OTG adapter for use.
 
-The repository currently contains source code and the USB library ZIP, but
-**does not include a prebuilt firmware UF2**. The library ZIP is installed
-on the build computer; it is not copied to the board's boot drive.
+Prebuilt firmware is produced by the [Firmware build workflow](.github/workflows/firmware.yml)
+and can be downloaded from a successful Actions run or a GitHub Release after
+its build completes. The UF2 already contains the compiled libraries; its
+recipient does not need Arduino IDE or the USB library ZIP.
+
+Compiled binaries are not tracked in Git. The library ZIP is installed on the
+build computer; it is not copied to the board's boot drive.
 A `.bin` file cannot be used by simply renaming it to `.uf2`.
 
 ### Creating a UF2 from an Arduino build
@@ -411,6 +415,38 @@ releasing keypad 1 while holding keypad 4 leaves LEFT active.
 
 This mode is not intended to replace a physical joystick: some games may interpret joystick #2 inputs as keypresses.
 
+# Automated builds and releases
+
+[.github/workflows/firmware.yml](.github/workflows/firmware.yml) runs host tests
+and builds for **XIAO SAMD21** on firmware-related pushes, pull requests,
+manual Actions runs, and published GitHub Releases. It explicitly selects the
+USB library from this checkout. Arduino CLI, the board package, external
+libraries and the official UF2 converter are pinned to specific versions.
+
+Each successful run provides a downloadable artifact containing:
+
+- `.uf2` for copying to the bootloader drive;
+- `.bin` application image and `.elf` debug symbols;
+- `.json` with the firmware date, source commit and tool versions;
+- `SHA256SUMS.txt` for integrity checks.
+
+Filenames contain the board name, firmware date and abbreviated source commit.
+Actions artifacts are retained for 30 days. For a lasting download, publish a
+GitHub Release from a tag named **`YYYY-MM-DD` or `vYYYY-MM-DD`**, matching
+[firmware_version.h](SEEED/C128_keyboard/firmware_version.h), for example
+`v2026-10-30`. The workflow rebuilds the tagged source and attaches the files
+to that release after tests and verification pass. A tag/date mismatch fails
+the build instead of attaching incorrectly labelled files.
+
+Publishing a release is a manual maintainer action; branch pushes and pull
+requests only produce build artifacts. The workflow does not create releases
+or push tags. To change the tested dependency versions, edit the workflow's
+`env` section and rerun the build.
+
+The packager checks the application's vector table, SAMD21 family ID, flash
+addresses and every UF2 payload byte against the compiled BIN. These checks
+validate the file format and target; hardware testing is still required.
+
 # Development and tests
 
 With Python 3 and GCC's `g++` with AddressSanitizer and UndefinedBehaviorSanitizer
@@ -418,6 +454,7 @@ available (for example, on Linux or WSL), run from the repository root:
 
 ```sh
 python3 tests/test_keyboard_events.py
+python3 -m unittest discover -s tests -p 'test_firmware_artifacts.py' -v
 ```
 
 The host tests compile the actual event-handling functions as C++14, with
