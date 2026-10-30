@@ -115,13 +115,17 @@ that folder together when copying it to another computer.
 2. Use the Library Manager to install **[U8g2](https://github.com/olikraus/U8g2_Arduino)**
    and **[ShiftRegister74HC595](https://github.com/Simsso/ShiftRegister74HC595)**.
    U8g2 is required to compile the sketch even when no OLED is connected.
-3. Install this checkout's modified [USB host library ZIP](SEEED/C64_USB_Host_Library_SAMD.zip)
-   using **Sketch > Include Library > Add .ZIP Library**, or replace the
-   installed library with [SEEED/C64_USB_Host_Library_SAMD](SEEED/C64_USB_Host_Library_SAMD).
+3. Download **`SEEED/C64_USB_Host_Library_SAMD.zip` from this repository**
+   ([download the matching ZIP](SEEED/C64_USB_Host_Library_SAMD.zip)). In the IDE,
+   choose **Sketch > Include Library > Add .ZIP Library** and select that local
+   file. Alternatively, replace the installed library with this checkout's
+   [source directory](SEEED/C64_USB_Host_Library_SAMD).
    A generic USB host library is not a substitute for this modified version.
 4. Open [C128_keyboard.ino](SEEED/C128_keyboard/C128_keyboard.ino) in the Arduino IDE.
 5. Disconnect the USB keyboard/OTG adapter and connect the XIAO's USB-C port
    to the computer with a USB data cable. Select the board's port and upload.
+   If the port is missing or upload fails, enter the bootloader as described
+   below, select its port, and try again.
 6. Disconnect the programming cable, reconnect the keyboard through the OTG
    adapter, and power the adapter using the configuration described above.
 
@@ -172,6 +176,61 @@ has priority over libraries installed in the sketchbook. These commands use
 the source directory directly, so no USB library ZIP installation is needed.
 They compile the firmware; use the Arduino IDE or an appropriate CLI upload
 command to upload it to the board.
+
+## Entering the bootloader (double reset)
+
+The original XIAO SAMD21 has reset pads rather than an onboard reset button.
+To enter its bootloader:
+
+1. Disconnect the keyboard/OTG adapter and connect the XIAO to the computer
+   with a USB data cable.
+2. Briefly bridge the two **RST reset pads twice in quick succession**, removing
+   the bridge between the two touches. See [Seeed's reset-pad illustration](https://wiki.seeedstudio.com/Seeeduino-XIAO/#enter-bootloader-mode)
+   for the pad locations. If your board has a reset button, press it twice.
+3. The bootloader LED should pulse. With a UF2-enabled bootloader, a removable
+   drive normally named **Arduino** appears, containing `INFO_UF2.TXT`.
+   A bootloader serial port may also appear; on Windows its COM number may
+   differ from the application port. Select that port for an IDE upload.
+
+A single reset restarts the application. **Print Screen on the USB keyboard
+only resets the adapter's keys and settings; it does not enter the bootloader.**
+
+## Uploading a UF2 file by copying it to the boot drive
+
+The [XIAO SAMD21 UF2 bootloader supports drag-and-drop flashing](https://wiki.seeedstudio.com/Seeeduino-XIAO-CircuitPython/#installing-circuitpython).
+With a UF2-enabled bootloader and a UF2 build of **this project's firmware for
+XIAO SAMD21**, no Arduino IDE is needed on the computer doing the upload:
+
+1. Enter the bootloader using the double-reset procedure above.
+2. Copy the firmware `.uf2` file to the **Arduino** removable drive using
+   Windows File Explorer or your system's file manager.
+3. Wait for copying to finish. The board normally restarts automatically and
+   the boot drive disappears. Reconnect the keyboard/OTG adapter for use.
+
+The repository currently contains source code and the USB library ZIP, but
+**does not include a prebuilt firmware UF2**. The library ZIP is installed
+on the build computer; it is not copied to the board's boot drive.
+A `.bin` file cannot be used by simply renaming it to `.uf2`.
+
+### Creating a UF2 from an Arduino build
+
+1. Build for **Seeeduino XIAO (SAMD21)** with the matching USB library, then
+   use **Sketch > Export Compiled Binary** in the Arduino IDE. Locate the
+   application binary, normally named `C128_keyboard.ino.bin`.
+2. Download [uf2conv.py](https://github.com/microsoft/uf2/blob/master/utils/uf2conv.py)
+   and [uf2families.json](https://github.com/microsoft/uf2/blob/master/utils/uf2families.json)
+   from Microsoft's UF2 project and place them alongside the binary.
+3. In that directory, run the conversion with Python 3 (adjust the binary
+   filename if your build uses a different one):
+
+   ```sh
+   python uf2conv.py --convert --family SAMD21 --base 0x2000 --output C128_keyboard.uf2 C128_keyboard.ino.bin
+   ```
+
+Use the application binary from this sketch's XIAO SAMD21 build, without a
+bootloader image prepended. The `0x2000` application address matches the
+[Seeed XIAO linker configuration](https://github.com/Seeed-Studio/ArduinoCore-samd/blob/master/variants/XIAO_m0/linker_scripts/gcc/flash_with_bootloader.ld).
+The conversion only creates the UF2 file; copy it to the boot drive separately.
 
 ## OLED and firmware version
 
