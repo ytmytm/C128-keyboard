@@ -443,6 +443,23 @@ requests only produce build artifacts. The workflow does not create releases
 or push tags. To change the tested dependency versions, edit the workflow's
 `env` section and rerun the build.
 
+## Release checklist (maintainers)
+
+**Use `v<firmwareVersion>` as the release tag.** For example, if
+`firmware_version.h` contains `"2026-10-30"`, use **`v2026-10-30`**.
+
+1. Set the release date in [firmware_version.h](SEEED/C128_keyboard/firmware_version.h).
+2. Commit and push the source, including that version and the workflow.
+3. On GitHub, open **Releases > Draft a new release**. Select or create the
+   tag `vYYYY-MM-DD` using the exact date from the header. Point the tag at
+   the tested commit/branch containing the updated firmware and workflow.
+4. Click **Publish release**. Saving a draft alone does not start this build.
+5. Wait for **Firmware build** to succeed and check that the release has its
+   `.uf2` and `SHA256SUMS.txt` assets before sharing it.
+
+The packager also accepts the date without the `v` prefix, but use the
+`vYYYY-MM-DD` convention for project releases. A different date is rejected.
+
 The packager checks the application's vector table, SAMD21 family ID, flash
 addresses and every UF2 payload byte against the compiled BIN. These checks
 validate the file format and target; hardware testing is still required.
